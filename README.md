@@ -33,9 +33,9 @@ contract StakedRegistry is Registry {
 }
 ```
 
-`GovernedRegistry.sol`
+`TokenCuratedRegistry.sol`
 ```
-GovernedRegistry is StakedRegistry {
+TokenCuratedRegistry is StakedRegistry {
   mapping(bytes32 => ItemChallengeData) itemsChallengeData;
   
   struct ItemChallengeData {
