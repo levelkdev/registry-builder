@@ -1,62 +1,48 @@
-# Smart Contract Starter
+# Modular TCR Library
 
 [Description]
 
-### Setup
+### About
 
-Make sure you have the following installed globally:
+This library aims to be a readable and modular library for TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized TCR contract. However, if developers must make changes to these existing contracts to fit their needs, the hope is that these contracts are organized enough that you can alter them with ease. 
 
-node 8
+### Structure (a work in progress)
 
-TestRPC 6: `npm install -g ethereumjs-testrpc`
-
-Then run `npm install`
-
-`chmod +x ./scripts/**` to grant execute permissions on the scripts directory
-
-### Compile
-
-Recompile contracts and build artifacts.
-
+`Registry.sol`
 ```
-$ npm run compile
-```
+contract Registry {
+  mapping(bytes32 => bytes32) items;
 
-### Deploy
-
-Deploy contracts to RPC provider at port `8546`.
-
-```
-$ npm run testrpc
-$ npm run deploy
-```
-
-### Test
-
-Run `npm run compile` before first test run, and after any changes to the `.sol` files
-
-```
-$ npm test
-```
-
-Run `npm run test:coverage` to run with coverage reporting
-
-### Deployment Setup
-
-Add `secrets.json` to the project root
-
-```
-// secrets.json
-{
-  "mnemonic": "<some mnemonic>",
-  "infura_apikey": "<your infura key>"
+  function add(bytes32 data) public returns (bytes32 id);
+  function remove(bytes32 id) public;
+  function get(bytes32 id) public constant returns (bytes32);
 }
 ```
 
-Go to https://iancoleman.github.io/bip39/, click "Generate". Add `BIP39 Mnemonic` to `"mnemonic"` value in `secrets.json`
+`StakedRegistry.sol`
 
-Add address from the BIP39 page to MetaMask. Send it some rinkeby Ether, or get it from the faucet on https://www.rinkeby.io
+Potentially looking into following EIP900 Staking Standard https://github.com/ethereum/EIPs/issues/900
+```
+contract StakedRegistry is Registry {
+  mapping(bytes32 => ItemMetadata) itemsMetadata;
 
-Go to https://infura.io/register.html to register for Infura. Paste your API key into `"infura_apikey"` value in `secrets.json`
+  struct ItemMetadata {
+    address owner;
+    uint stakedTokens;
+  }
+}
+```
 
-`npm run deploy-rinkeby` to deploy to rinkeby
+`GovernedRegistry.sol`
+```
+GovernedRegistry is StakedRegistry {
+  mapping(bytes32 => ItemChallengeData) itemsChallengeData;
+  
+  struct ItemChallengeData {
+    address challengeAddress;
+    bool challengeResolved;
+  }
+  
+  ChallengeFactory challengeFactory; // factory that creates a Challenge contract for challenged registry items
+}
+```
