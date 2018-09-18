@@ -4,7 +4,7 @@
 
 ### About
 
-This library aims to be a readable and modular library for TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized TCR contract. However, if developers must make changes to these existing contracts to fit their needs, the hope is that these contracts are organized enough that you can alter them with ease. 
+This library aims to be a readable and modular library for TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized TCR contract. However, if developers must make changes to these existing contracts to fit their needs, the hope is that these contracts are organized enough that you can alter them with ease.
 
 ### Structure (a work in progress)
 
@@ -36,13 +36,16 @@ contract StakedRegistry is Registry {
 `TokenCuratedRegistry.sol`
 ```
 TokenCuratedRegistry is StakedRegistry {
-  mapping(bytes32 => ItemChallengeData) itemsChallengeData;
-  
-  struct ItemChallengeData {
+  mapping(bytes32 => ItemCurationData) itemsCurationData;
+
+  struct ItemCurationData {
+    uint applicationExpiry;
+    bool whitelisted;
     address challengeAddress;
     bool challengeResolved;
   }
-  
+
   ChallengeFactory challengeFactory; // factory that creates a Challenge contract for challenged registry items
+  uint applicationPeriod;
 }
 ```

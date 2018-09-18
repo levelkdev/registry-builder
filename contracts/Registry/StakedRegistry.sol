@@ -1,19 +1,19 @@
 pragma solidity ^0.4.24;
 
-import './Registry.sol'
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol'
+import './Registry.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 contract StakedRegistry is Registry {
   ERC20 token;
   uint minStake; // the minimum required amount of tokens staked
 
   modifier canStakeTokens() {
-    require(token.transferFrom(msg.sender, this, minStake);
+    require(token.transferFrom(msg.sender, this, minStake));
     _;
   }
 
   modifier onlyItemOwner(bytes32 id) {
-    require(itemsMetadata(id).owner == msg.sender);
+    require(itemsMetadata[id].owner == msg.sender);
     _;
   }
 
@@ -31,12 +31,12 @@ contract StakedRegistry is Registry {
 
   function add(bytes32 data) public canStakeTokens returns (bytes32) {
     bytes32 id = keccak256(data);
-    itemsMetadata[id] = ItemMetadata(msg.sender, minStake)
+    itemsMetadata[id] = ItemMetadata(msg.sender, minStake);
     return super.add(data);
   }
 
   function remove(bytes32 id) public onlyItemOwner(id) {
-    uint stakeAmount = itemsMetadata(id).stakedTokens;
+    uint stakeAmount = itemsMetadata[id].stakedTokens;
     token.transfer(msg.sender, stakeAmount);
     delete itemsMetadata[id];
     super.remove(id);
