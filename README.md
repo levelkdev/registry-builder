@@ -80,3 +80,5 @@ interface Challenge {
   function returnTokenAmount() public view returns (uint256);
 }
 ```
+### Diagram
+![Modular TCR](https://user-images.githubusercontent.com/5539720/45768348-a5134b00-bc0a-11e8-85f1-d41e9b476883.jpg)
