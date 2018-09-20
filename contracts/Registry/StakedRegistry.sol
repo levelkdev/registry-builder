@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
-import './Registry.sol';
+import './BasicRegistry.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-contract StakedRegistry is Registry {
+contract StakedRegistry is BasicRegistry {
   ERC20 token;
   uint minStake; // the minimum required amount of tokens staked
 
