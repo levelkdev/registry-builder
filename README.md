@@ -30,7 +30,7 @@ contract StakedRegistry is Registry {
     address owner;
     uint stakedTokens;
   }
-  
+
   ERC20 token;
   uint minStake; // the minimum required amount of tokens staked
 }
@@ -50,7 +50,7 @@ TokenCuratedRegistry is StakedRegistry {
 
   ChallengeFactory challengeFactory; // factory that creates a Challenge contract for each newly challenged registry item
   uint applicationPeriod;
-  
+
   function challenge(bytes32 id) external returns (address challenge);
   functionm updateStatus(bytes32 id) external;
 }
@@ -74,10 +74,10 @@ interface Challenge {
   function passed() public view returns (bool);
 
   // amount of tokens the Challenge will need to carry out operation
-  function requestedTokenAmount() public view returns (uint256);
+  function requestedTokenAmount() public view returns (uint);
 
   // amount of tokens the Challenge will return to registry after conclusion (ie: winner reward)
-  function returnTokenAmount() public view returns (uint256);
+  function returnTokenAmount() public view returns (uint);
 }
 ```
 ### Diagram
