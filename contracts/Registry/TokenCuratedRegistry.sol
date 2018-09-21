@@ -19,11 +19,11 @@ contract TokenCuratedRegistry is StakedRegistry {
     _;
   }
 
-  mapping(bytes32 => bytes32) applicationItems;
   mapping(bytes32 => ItemCurationData) itemsCurationData;
 
   struct ItemCurationData {
     uint applicationExpiry;
+    bool whiteListed;
     IChallenge challengeAddress;
     bool challengeResolved;
   }
@@ -40,27 +40,22 @@ contract TokenCuratedRegistry is StakedRegistry {
     challengeFactory = _challengeFactory;
   }
 
-  function apply(bytes32 data) public returns (bytes32) {
-    require(token.transferFrom(msg.sender, this, minStake));
-    bytes32 id = keccak256(data);
-
-    applicationItems[id] = data;
-    itemsMetadata[id] = ItemMetadata(msg.sender, minStake);
-    itemsCurationData[id] = ItemCurationData(now + applicationPeriod, IChallenge(0), false);
-  }
-
   function add(bytes32 data) public returns (bytes32) {
     bytes32 id = keccak256(data);
-    require(itemsCurationData[id].applicationExpiry < now);
-    require(inApplicationPhase(id) && !inChallengePhase(id));
-
-    delete applicationItems[id];
-    items[id] = data;
+    itemsCurationData[id] = ItemCurationData(now + applicationPeriod, false, IChallenge(0), false);
+    return super.add(data);
   }
 
   function remove(bytes32 id) public itemWhitelisted(id) itemNotLockedInChallenge(id) {
     delete itemsCurationData[id];
     super.remove(id);
+  }
+
+  function whiteList(bytes32 id) public itemNotLockedInChallenge(id) {
+    ItemCurationData storage itemCurationData = itemsCurationData[id]
+    require(inApplicationPhase(id));
+    require(itemCurationData.applicationExpiry < now);
+    itemCurationData.whitelisted = true;
   }
 
   function resolveChallenge(bytes32 id) public {
@@ -89,7 +84,7 @@ contract TokenCuratedRegistry is StakedRegistry {
   }
 
   function inApplicationPhase(bytes32 id) public returns (bool) {
-    applicationItems[id][0] != 0 ? true : false;
+    itemsCurationData[id].whitelisted == false;
   }
 
   // INTERNAL FUNCTIONS
