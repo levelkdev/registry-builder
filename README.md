@@ -8,9 +8,10 @@ This library aims to be a readable and modular library for TCR's. Ideally develo
 
 ### Registry
 
-`Registry.sol`
+`BasicRegistry.sol`
+
 ```
-contract Registry {
+contract BasicRegistry {
   mapping(bytes32 => bytes32) items;
 
   function add(bytes32 data) public returns (bytes32 id);
@@ -19,11 +20,25 @@ contract Registry {
 }
 ```
 
+`OwnedRegistry.sol`
+
+```
+contract OwnedRegistry is BasicRegistry {
+   modifier onlyOwner {
+    require(msg.sender == owner);
+    _;
+  }
+   address owner;
+   
+   function add(bytes32 data) public onlyOwner returns (bytes32 id);
+   function remove(bytes32 id) public onlyOwner;
+}
+```
+
 `StakedRegistry.sol`
 
-Potentially looking into following EIP900 Staking Standard https://github.com/ethereum/EIPs/issues/900
 ```
-contract StakedRegistry is Registry {
+contract StakedRegistry is BasicRegistry {
   mapping(bytes32 => ItemMetadata) itemsMetadata;
 
   struct ItemMetadata {
@@ -37,6 +52,7 @@ contract StakedRegistry is Registry {
 ```
 
 `TokenCuratedRegistry.sol`
+
 ```
 TokenCuratedRegistry is StakedRegistry {
   mapping(bytes32 => ItemCurationData) itemsCurationData;
@@ -67,6 +83,7 @@ interface ChallengeFactory {
 ```
 
 `Challenge.sol`
+
 ```
 interface Challenge {
   function ended() public view returns (bool);
@@ -74,7 +91,7 @@ interface Challenge {
   function passed() public view returns (bool);
 
   // amount of tokens the Challenge will need to carry out operation
-  function requestedTokenAmount() public view returns (uint256);
+  function requiredTokenAmount() public view returns (uint256);
 
   // amount of tokens the Challenge will return to registry after conclusion (ie: winner reward)
   function returnTokenAmount() public view returns (uint256);
