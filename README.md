@@ -5,6 +5,7 @@
 This library aims to be a readable and modular library for TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized TCR contract. However, if developers must make changes to these existing contracts to fit their needs, the hope is that these contracts are organized enough that you can alter them with ease.
 
 ## Structure (a work in progress)
+** Plan to eventually incorporate a `Parameterizer.sol` for certain vars
 
 ### Registry
 
