@@ -1,101 +1,107 @@
 pragma solidity ^0.4.24;
 
+import './LockableItemRegistry.sol';
 import './StakedRegistry.sol';
 import '../Challenge/IChallengeFactory.sol';
 import '../Challenge/IChallenge.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-contract TokenCuratedRegistry is StakedRegistry {
-  uint public applicationPeriod;
+contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
+  uint applicationPeriod;
   IChallengeFactory public challengeFactory;
-
-  modifier itemNotLockedInChallenge(bytes32 id) {
-    require(!inChallengePhase(id));
-    _;
-  }
-
-  modifier itemWhitelisted(bytes32 id) {
-    require(!inApplicationPhase(id));
-    _;
-  }
-
-  mapping(bytes32 => ItemCurationData) itemsCurationData;
-
-  struct ItemCurationData {
-    uint applicationExpiry;
-    bool whiteListed;
-    IChallenge challengeAddress;
-    bool challengeResolved;
-  }
-
-  constructor (
-    ERC20 _token,
-    uint _minStake,
-    uint _applicationPeriod,
-    IChallengeFactory _challengeFactory
-  ) public
-    StakedRegistry(_token, _minStake)
-  {
+  mapping(bytes32 => IChallenge) public challenges;
+  
+  constructor(ERC20 _token, uint _minStake, uint _applicationPeriod, IChallengeFactory _challengeFactory)
+  StakedRegistry(_token, _minStake)
+  public {
     applicationPeriod = _applicationPeriod;
     challengeFactory = _challengeFactory;
   }
 
-  function add(bytes32 data) public returns (bytes32) {
-    bytes32 id = keccak256(data);
-    itemsCurationData[id] = ItemCurationData(now + applicationPeriod, false, IChallenge(0), false);
-    return super.add(data);
+  // Adds an item to the `items` mapping, transfers token stake from msg.sender, and locks
+  // the item from removal until now + applicationPeriod.
+  function add(bytes32 data) public returns (bytes32 id) {
+    id = super.add(data);
+    unlockTimes[id] = now.add(applicationPeriod);
   }
 
-  function remove(bytes32 id) public itemWhitelisted(id) itemNotLockedInChallenge(id) {
-    delete itemsCurationData[id];
+  // Removes an item from the `items` mapping, and deletes challenge state. Requires that
+  // there is not an active or passed challenge for this item. OwnedItemRegistry.remove
+  // requires that this is called by the item owner. LockableItemRegistry.remove requires
+  // that the item is not locked.
+  function remove(bytes32 id) public {
+    require(!_challengeActive(id) && !_challengePassed(id));
+    delete challenges[id];
     super.remove(id);
   }
 
-  function whiteList(bytes32 id) public itemNotLockedInChallenge(id) {
-    ItemCurationData storage itemCurationData = itemsCurationData[id]
-    require(inApplicationPhase(id));
-    require(itemCurationData.applicationExpiry < now);
-    itemCurationData.whitelisted = true;
+  // Creates a new challenge for an item.
+  // Requires that the item exists, and that there is no existing challenge for the item.
+  // Requires msg.sender (the challenger) to match the owner's stake by transferring to
+  // this contract. The challenger's and owner's stake is transferred to the newly created
+  // challenge contract.
+  function challenge(bytes32 id) public {
+    require(exists(id) && !_challengeExists(id));
+    require(token.transferFrom(msg.sender, this, ownerStakes[id]));
+    address challenge = challengeFactory.create(this, msg.sender, owners[id]);
+    require(token.transfer(challenge, ownerStakes[id].mul(2)));
+    delete ownerStakes[id];
   }
 
+  // Handles transfer of reward after a challenge has ended. Requires that there
+  // is an ended challenge for the item.
   function resolveChallenge(bytes32 id) public {
-    IChallenge challenge = itemsCurationData[id].challengeAddress;
-    require(inChallengePhase(id));
-    require(challenge.ended());
-
-    if (challenge.passed()) {
-      _redistributeItemStake(id);
-      _rejectItem(id);
+    require(_challengeEnded(id));
+    if (_challengePassed(id)) {
+      // if the challenge passed, reward the challenger (via token.transfer) and remove
+      // the item.
+      require(token.transfer(challenges[id].challenger(), _redeemReward(id)));
+      super.remove(id);
     } else {
-      itemsCurationData[id].challengeResolved = true;
+      // if the challenge failed, reward the applicant (by adding to their staked balance)
+      ownerStakes[id] = _redeemReward(id);
     }
+    delete unlockTimes[id];
+    delete challenges[id];
   }
 
-  function inChallengePhase(bytes32 id) public returns (bool) {
-    ItemCurationData storage itemCurationData = itemsCurationData[id];
-
-    if (itemCurationData.challengeAddress == IChallenge(0)) {
-      return false;
-    } else if (itemCurationData.challengeResolved) {
-      return false;
-    } else {
-      return true;
-    }
+  // Returns true if the item exists and is not locked. We know that locked items are in
+  // the application phase, because the unlock time is set to now + applicationPeriod when
+  // items are added. Also, unlock time is set to 0 if an item is challenged and the
+  // challenge fails.
+  function inApplicationPhase(bytes32 id) public view returns (bool) {
+    return exists(id) && !isLocked(id);
   }
 
-  function inApplicationPhase(bytes32 id) public returns (bool) {
-    itemsCurationData[id].whitelisted == false;
+  function increaseStake(bytes32 id, uint stakeAmount) public {
+    require(!_challengeActive(id) && !_challengePassed(id));
+    super.increaseStake(id, stakeAmount);
   }
 
-  // INTERNAL FUNCTIONS
-
-  function _rejectItem(bytes32 id) internal {
-    delete items[id];
-    delete itemsMetadata[id];
-    delete itemsCurationData[id];
+  function decreaseStake(bytes32 id, uint stakeAmount) public {
+    require(!_challengeActive(id) && !_challengePassed(id));
+    super.decreaseStake(id, stakeAmount);
   }
 
-  function _redistributeItemStake(bytes32 id) internal {
-    // TODO: write functionality
+  // internals...
+
+  function _redeemReward(bytes32 id) internal returns (uint reward) {
+    reward = challenges[id].reward();
+    require(token.transferFrom(challenges[id], this, reward));
+  }
+
+  function _challengeActive(bytes32 id) internal view returns (bool) {
+    return exists(id) && _challengeExists(id) && !challenges[id].ended();
+  }
+
+  function _challengePassed(bytes32 id) internal view returns (bool) {
+    return _challengeEnded(id) && challenges[id].passed();
+  }
+
+  function _challengeEnded(bytes32 id) internal view returns (bool) {
+    return exists(id) && _challengeExists(id) && challenges[id].ended();
+  }
+
+  function _challengeExists(bytes32 id) internal view returns (bool) {
+    return address(challenges[id]) != 0x0;
   }
 }

@@ -1,40 +1,48 @@
 pragma solidity ^0.4.24;
 
-import './BasicRegistry.sol';
+import './OwnedItemRegistry.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-contract StakedRegistry is BasicRegistry {
+// handles token stake for owned items. Requires a minimum stake. Allows
+// the owner to increase or decrease stake, as long as it remains above
+// the minimum stake.
+contract StakedRegistry is OwnedItemRegistry {
+  using SafeMath for uint;
+
   ERC20 token;
-  uint minStake; // the minimum required amount of tokens staked
+  uint minStake;      // minimum required amount of tokens to add an item
 
-  modifier onlyItemOwner(bytes32 id) {
-    require(itemsMetadata[id].owner == msg.sender);
-    _;
-  }
-
-  mapping(bytes32 => ItemMetadata) itemsMetadata;
-
-  struct ItemMetadata {
-    address owner;
-    uint stakedTokens;
-  }
+  mapping(bytes32 => uint) public ownerStakes;
 
   constructor(ERC20 _token, uint _minStake) public {
     token = _token;
     minStake = _minStake;
   }
 
-  function add(bytes32 data) public returns (bytes32) {
+  function add(bytes32 data) public returns (bytes32 id) {
     require(token.transferFrom(msg.sender, this, minStake));
-    bytes32 id = keccak256(data);
-    itemsMetadata[id] = ItemMetadata(msg.sender, minStake);
-    return super.add(data);
+    id = super.add(data);
+    ownerStakes[id] = minStake;
   }
 
   function remove(bytes32 id) public onlyItemOwner(id) {
-    uint stakedAmount = itemsMetadata[id].stakedTokens;
-    token.transfer(msg.sender, stakedAmount);
-    delete itemsMetadata[id];
+    if (ownerStakes[id] > 0) {
+      require(token.transfer(msg.sender, ownerStakes[id]));
+    }
+    delete ownerStakes[id];
     super.remove(id);
   }
+
+  function increaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
+    require(token.transferFrom(msg.sender, this, stakeAmount));
+    ownerStakes[id] = ownerStakes[id].add(stakeAmount);
+  }
+
+  function decreaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
+    require(ownerStakes[id].sub(stakeAmount) > minStake);
+    require(token.transfer(msg.sender, stakeAmount));
+    ownerStakes[id] = ownerStakes[id].sub(stakeAmount);
+  }
+
 }

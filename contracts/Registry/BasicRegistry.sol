@@ -39,7 +39,11 @@ contract BasicRegistry is IRegistry {
 
     //  Get an item from the registry.
     //  @param id The ID of the item to get
-    function get(bytes32 id) public constant returns (bytes32) {
+    function get(bytes32 id) public view returns (bytes32) {
         return items[id];
+    }
+
+    function exists(bytes32 id) public view returns (bool) {
+        return items[id] != 0x0;
     }
 }
