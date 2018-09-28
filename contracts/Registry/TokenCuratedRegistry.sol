@@ -41,10 +41,9 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // challenge contract.
   function challenge(bytes32 id) public {
     require(exists(id) && !_challengeExists(id));
-    require(token.transferFrom(msg.sender, this, ownerStakes[id]));
+    require(token.transferFrom(msg.sender, this, minStake));
     address challenge = challengeFactory.create(this, msg.sender, owners[id]);
-    require(token.transfer(challenge, ownerStakes[id].mul(2)));
-    delete ownerStakes[id];
+    require(token.transfer(challenge, minStake.mul(2)));
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
@@ -55,10 +54,11 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), _redeemReward(id)));
+      delete ownerStakes[id];
       super.remove(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
-      ownerStakes[id] = _redeemReward(id);
+      ownerStakes[id] = ownerStakes[id].add(_redeemReward(id)).sub(minStake);
     }
     delete unlockTimes[id];
     delete challenges[id];
@@ -70,16 +70,6 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // challenge fails.
   function inApplicationPhase(bytes32 id) public view returns (bool) {
     return exists(id) && !isLocked(id);
-  }
-
-  function increaseStake(bytes32 id, uint stakeAmount) public {
-    require(!_challengeActive(id) && !_challengePassed(id));
-    super.increaseStake(id, stakeAmount);
-  }
-
-  function decreaseStake(bytes32 id, uint stakeAmount) public {
-    require(!_challengeActive(id) && !_challengePassed(id));
-    super.decreaseStake(id, stakeAmount);
   }
 
   // internals...
