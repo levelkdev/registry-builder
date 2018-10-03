@@ -75,16 +75,25 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
     return !isLocked(id);
   }
 
+  // Returns true if the challenge for the given item id has passed.
+  // Reverts if the item id does not exist.
+  // Reverts if a challenge for this item id does not exist.
+  // Reverts if the challenge has not ended.
   function challengePassed(bytes32 id) public view returns (bool) {
     require(challengeEnded(id));
     return challenges[id].passed();
   }
 
+  // Returns true if the challenge for the given item id has ended.
+  // Reverts if the item id does not exist.
+  // Reverts if a challenge for this item id does not exist.
   function challengeEnded(bytes32 id) public view returns (bool) {
     require(challengeExists(id));
     return challenges[id].ended();
   }
 
+  // Returns true if a challenge exists for the given item id.
+  // Reverts if the item id does not exist.
   function challengeExists(bytes32 id) public view returns (bool) {
     require(exists(id));
     return address(challenges[id]) != 0x0;
