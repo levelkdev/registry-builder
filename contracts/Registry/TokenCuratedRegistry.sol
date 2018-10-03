@@ -74,7 +74,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // challenge fails.
   function inApplicationPhase(bytes32 id) public view returns (bool) {
     require(exists(id));
-    return !isLocked(id);
+    return isLocked(id);
   }
 
   // Returns true if the challenge for the given item id has passed.
