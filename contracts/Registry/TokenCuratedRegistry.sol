@@ -68,16 +68,18 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
     delete challenges[id];
   }
 
-  // Returns true if the item exists and is not locked. We know that locked items are in
-  // the application phase, because the unlock time is set to now + applicationPeriod when
-  // items are added. Also, unlock time is set to 0 if an item is challenged and the
-  // challenge fails.
+  // Returns `true` if the item is locked, and `false` if the item is unlocked. We know that
+  // locked items are in the application phase, because the unlock time is set to
+  // now + applicationPeriod when items are added. Also, unlock time is set to 0 if an item
+  // is challenged and the challenge fails.
+  // Reverts if the item id does not exist.
   function inApplicationPhase(bytes32 id) public view returns (bool) {
     require(exists(id));
     return isLocked(id);
   }
 
-  // Returns true if the challenge for the given item id has passed.
+  // Returns `true` if the challenge for the given item id has passed, and `false` if the
+  // challenge for the given item id has not passed.
   // Reverts if the item id does not exist.
   // Reverts if a challenge for this item id does not exist.
   // Reverts if the challenge has not ended.
@@ -86,7 +88,8 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
     return challenges[id].passed();
   }
 
-  // Returns true if the challenge for the given item id has ended.
+  // Returns `true` if the challenge for the given item id has ended, and `false` if the
+  // challenge for the given item id has not ended.
   // Reverts if the item id does not exist.
   // Reverts if a challenge for this item id does not exist.
   function challengeEnded(bytes32 id) public view returns (bool) {
@@ -94,7 +97,8 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
     return challenges[id].ended();
   }
 
-  // Returns true if a challenge exists for the given item id.
+  // Returns `true` if a challenge exists for the given item id, and `false` if a challenge
+  // does not exist for the given item id.
   // Reverts if the item id does not exist.
   function challengeExists(bytes32 id) public view returns (bool) {
     require(exists(id));
