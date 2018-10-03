@@ -29,7 +29,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // requires that this is called by the item owner. LockableItemRegistry.remove requires
   // that the item is not locked.
   function remove(bytes32 id) public {
-    require(!_challengeActive(id) && !_challengePassed(id));
+    require(!challengeActive(id) && !challengePassed(id));
     delete challenges[id];
     super.remove(id);
   }
@@ -40,7 +40,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // this contract. The challenger's and owner's stake is transferred to the newly created
   // challenge contract.
   function challenge(bytes32 id) public {
-    require(exists(id) && !_challengeExists(id));
+    require(exists(id) && !challengeExists(id));
     require(token.transferFrom(msg.sender, this, minStake));
     address challenge = challengeFactory.create(this, msg.sender, owners[id]);
     require(token.transfer(challenge, minStake.mul(2)));
@@ -49,8 +49,8 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // Handles transfer of reward after a challenge has ended. Requires that there
   // is an ended challenge for the item.
   function resolveChallenge(bytes32 id) public {
-    require(_challengeEnded(id));
-    if (_challengePassed(id)) {
+    require(challengeEnded(id));
+    if (challengePassed(id)) {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), _redeemReward(id)));
@@ -72,26 +72,26 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
     return exists(id) && !isLocked(id);
   }
 
+  function challengeActive(bytes32 id) public view returns (bool) {
+    return exists(id) && challengeExists(id) && !challenges[id].ended();
+  }
+
+  function challengePassed(bytes32 id) public view returns (bool) {
+    return challengeEnded(id) && challenges[id].passed();
+  }
+
+  function challengeEnded(bytes32 id) public view returns (bool) {
+    return exists(id) && challengeExists(id) && challenges[id].ended();
+  }
+
+  function challengeExists(bytes32 id) public view returns (bool) {
+    return address(challenges[id]) != 0x0;
+  }
+
   // internals...
 
   function _redeemReward(bytes32 id) internal returns (uint reward) {
     reward = challenges[id].reward();
     require(token.transferFrom(challenges[id], this, reward));
-  }
-
-  function _challengeActive(bytes32 id) internal view returns (bool) {
-    return exists(id) && _challengeExists(id) && !challenges[id].ended();
-  }
-
-  function _challengePassed(bytes32 id) internal view returns (bool) {
-    return _challengeEnded(id) && challenges[id].passed();
-  }
-
-  function _challengeEnded(bytes32 id) internal view returns (bool) {
-    return exists(id) && _challengeExists(id) && challenges[id].ended();
-  }
-
-  function _challengeExists(bytes32 id) internal view returns (bool) {
-    return address(challenges[id]) != 0x0;
   }
 }
