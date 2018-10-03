@@ -52,15 +52,17 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // is an ended challenge for the item.
   function resolveChallenge(bytes32 id) public {
     require(challengeEnded(id));
+    uint reward = challenges[id].reward();
+    require(token.transferFrom(challenges[id], this, reward));
     if (challengePassed(id)) {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
-      require(token.transfer(challenges[id].challenger(), _redeemReward(id)));
+      require(token.transfer(challenges[id].challenger(), reward));
       delete ownerStakes[id];
       super.remove(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
-      ownerStakes[id] = ownerStakes[id].add(_redeemReward(id)).sub(minStake);
+      ownerStakes[id] = ownerStakes[id].add(reward).sub(minStake);
     }
     delete unlockTimes[id];
     delete challenges[id];
@@ -97,12 +99,5 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   function challengeExists(bytes32 id) public view returns (bool) {
     require(exists(id));
     return address(challenges[id]) != 0x0;
-  }
-
-  // internals...
-
-  function _redeemReward(bytes32 id) internal returns (uint reward) {
-    reward = challenges[id].reward();
-    require(token.transferFrom(challenges[id], this, reward));
   }
 }
