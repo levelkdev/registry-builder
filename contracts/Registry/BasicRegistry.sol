@@ -25,7 +25,7 @@ contract BasicRegistry is IRegistry {
     // @param data The item to add to the registry
     function add(bytes32 data) public returns (bytes32 id) {
         id = keccak256(data);
-        require(items[id] != data); // cannot override existing item
+        require(!exists(id));
         items[id] = data;
         ItemAdded(id);
     }
@@ -33,6 +33,7 @@ contract BasicRegistry is IRegistry {
     // Remove an item from the registry.
     // @param id The ID of the item to remove
     function remove(bytes32 id) public {
+        require(exists(id));
         delete items[id];
         ItemRemoved(id);
     }
