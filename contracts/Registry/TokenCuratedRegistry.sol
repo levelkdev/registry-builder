@@ -29,7 +29,9 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // requires that this is called by the item owner. LockableItemRegistry.remove requires
   // that the item is not locked.
   function remove(bytes32 id) public {
-    require(!challengeActive(id) && !challengePassed(id));
+    if (challengeExists(id)) {
+      require(challengeEnded(id) && !challengePassed(id));
+    }
     delete challenges[id];
     super.remove(id);
   }
@@ -40,7 +42,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // this contract. The challenger's and owner's stake is transferred to the newly created
   // challenge contract.
   function challenge(bytes32 id) public {
-    require(exists(id) && !challengeExists(id));
+    require(!challengeExists(id));
     require(token.transferFrom(msg.sender, this, minStake));
     address challenge = challengeFactory.create(this, msg.sender, owners[id]);
     require(token.transfer(challenge, minStake.mul(2)));
@@ -69,22 +71,22 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
   // items are added. Also, unlock time is set to 0 if an item is challenged and the
   // challenge fails.
   function inApplicationPhase(bytes32 id) public view returns (bool) {
-    return exists(id) && !isLocked(id);
-  }
-
-  function challengeActive(bytes32 id) public view returns (bool) {
-    return exists(id) && challengeExists(id) && !challenges[id].ended();
+    require(exists(id));
+    return !isLocked(id);
   }
 
   function challengePassed(bytes32 id) public view returns (bool) {
-    return challengeEnded(id) && challenges[id].passed();
+    require(challengeEnded(id));
+    return challenges[id].passed();
   }
 
   function challengeEnded(bytes32 id) public view returns (bool) {
-    return exists(id) && challengeExists(id) && challenges[id].ended();
+    require(challengeExists(id));
+    return challenges[id].ended();
   }
 
   function challengeExists(bytes32 id) public view returns (bool) {
+    require(exists(id));
     return address(challenges[id]) != 0x0;
   }
 
