@@ -18,85 +18,121 @@ contract BasicRegistry {
   function add(bytes32 data) public returns (bytes32 id);
   function remove(bytes32 id) public;
   function get(bytes32 id) public constant returns (bytes32);
+  function exists(bytes32 id) public view returns (bool);
 }
 ```
 
-`OwnedRegistry.sol`
+`OwnedItemRegistry.sol`
+
+Sets the msg.sender of the `add` transaction as the owner of the added item. Only allows the owner of the item to remove it.
 
 ```
-contract OwnedRegistry is BasicRegistry {
-   modifier onlyOwner {
-    require(msg.sender == owner);
-    _;
-  }
-   address owner;
-   
-   function add(bytes32 data) public onlyOwner returns (bytes32 id);
-   function remove(bytes32 id) public onlyOwner;
+contract OwnedItemRegistry is BasicRegistry {
+  modifier onlyItemOwner(bytes32 id);
+
+  mapping(bytes32 => address) public owners;
+
+  function add(bytes32 data) public returns (bytes32 id);
+  function remove(bytes32 id) public onlyItemOwner(id);
 }
 ```
 
 `StakedRegistry.sol`
 
-```
-contract StakedRegistry is BasicRegistry {
-  mapping(bytes32 => ItemMetadata) itemsMetadata;
+Handles token stake for owned items. Requires a minimum stake. Allows the owner to increase or decrease stake, as long as it remains above the minimum stake.
 
-  struct ItemMetadata {
-    address owner;
-    uint stakedTokens;
-  }
-  
+```
+contract StakedRegistry is OwnedItemRegistry {
   ERC20 token;
-  uint minStake; // the minimum required amount of tokens staked
+  uint minStake;      // minimum required amount of tokens to add an item
+
+  mapping(bytes32 => uint) public ownerStakes;
+
+  function add(bytes32 data) public returns (bytes32 id);
+  function remove(bytes32 id) public onlyItemOwner(id);
+  function increaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id);
+  function decreaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id);
 }
 ```
+
+`TimelockableItemRegistry.sol`
+
+Provides a mapping of unlock times for items. Only allows item removal when the unlock time has been exceeded.
+
+```
+contract TimelockableItemRegistry is OwnedItemRegistry {
+  mapping(bytes32 => uint) public unlockTimes;
+
+  function remove(bytes32 id) public;
+  function isLocked(bytes32 id) public view returns (bool);
+}
+```
+
 
 `TokenCuratedRegistry.sol`
 
 ```
 TokenCuratedRegistry is StakedRegistry {
-  mapping(bytes32 => ItemCurationData) itemsCurationData;
-
-  struct ItemCurationData {
-    uint applicationExpiry;
-    bool whitelisted;
-    address challengeAddress;
-    bool challengeResolved;
-  }
-
-  ChallengeFactory challengeFactory; // factory that creates a Challenge contract for each newly challenged registry item
   uint applicationPeriod;
-  
-  function challenge(bytes32 id) external returns (address challenge);
-  functionm updateStatus(bytes32 id) external;
+  IChallengeFactory public challengeFactory;
+  mapping(bytes32 => IChallenge) public challenges;
+
+  // Adds an item to the `items` mapping, transfers token stake from msg.sender, and locks
+  // the item from removal until now + applicationPeriod.
+  function add(bytes32 data) public returns (bytes32 id);
+
+  // Removes an item from the `items` mapping, and deletes challenge state. Requires that
+  // there is not an active or passed challenge for this item. OwnedItemRegistry.remove
+  // requires that this is called by the item owner. TimelockableItemRegistry.remove requires
+  // that the item is not locked.
+  function remove(bytes32 id) public;
+
+  // Creates a new challenge for an item.
+  // Requires that the item exists, and that there is no existing challenge for the item.
+  // Requires msg.sender (the challenger) to match the owner's stake by transferring to
+  // this contract. The challenger's and owner's stake is transferred to the newly created
+  // challenge contract.
+  function challenge(bytes32 id) public;
+
+  // Handles transfer of reward after a challenge has ended. Requires that there
+  // is an ended challenge for the item.
+  function resolveChallenge(bytes32 id) public;
+
+  // Returns true if the item exists and is not locked. We know that locked items are in
+  // the application phase, because the unlock time is set to now + applicationPeriod when
+  // items are added. Also, unlock time is set to 0 if an item is challenged and the
+  // challenge fails.
+  function inApplicationPhase(bytes32 id) public view returns (bool);
 }
 ```
 
 ### Challenge
-`ChallengeFactory.sol`
+`IChallengeFactory.sol`
 
 ```
-interface ChallengeFactory {
-  function createChallenge(address registry, address challenger, address itemOwner) returns (address challenge);
-}
-
-```
-
-`Challenge.sol`
-
-```
-interface Challenge {
-  function ended() public view returns (bool);
-
-  function passed() public view returns (bool);
-
-  // amount of tokens the Challenge will need to carry out operation
-  function requiredTokenAmount() public view returns (uint256);
-
-  // amount of tokens the Challenge will return to registry after conclusion (ie: winner reward)
-  function returnTokenAmount() public view returns (uint256);
+interface IChallengeFactory {
+  function create(address registry, address challenger, address applicant) returns (address challenge);
 }
 ```
+
+`IChallenge.sol`
+
+```
+interface IChallenge {
+  // returns true if the challenge has ended
+  function ended() view returns(bool);
+
+  // returns true if the challenge has passed
+  function passed() view returns (bool);
+
+  // returns the amount of tokens to transfer back to the registry contract
+  // after the challenge has eneded, to be distributed as a reward for applicant/challenger
+  function reward() view returns (uint);
+
+  // returns the address of the challenger
+  function challenger() view returns (address);
+}
+```
+
 ### Diagram
 ![Modular TCR](https://user-images.githubusercontent.com/5539720/45768348-a5134b00-bc0a-11e8-85f1-d41e9b476883.jpg)
