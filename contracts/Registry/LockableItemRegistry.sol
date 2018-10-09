@@ -1,10 +1,10 @@
 pragma solidity ^0.4.24;
 
-import './OwnedItemRegistry.sol';
+import './BasicRegistry.sol';
 
 // provides a mapping of unlock times for items. Only allows
 // item removal when the unlock time has been exceeded.
-contract LockableItemRegistry is OwnedItemRegistry {
+contract LockableItemRegistry is BasicRegistry {
   mapping(bytes32 => uint) public unlockTimes;
 
   function remove(bytes32 id) public {
