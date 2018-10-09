@@ -1,11 +1,11 @@
 pragma solidity ^0.4.24;
 
-import './LockableItemRegistry.sol';
+import './TimelockableItemRegistry.sol';
 import './StakedRegistry.sol';
 import '../Challenge/IChallengeFactory.sol';
 import '../Challenge/IChallenge.sol';
 
-contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
+contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   uint applicationPeriod;
   IChallengeFactory public challengeFactory;
   mapping(bytes32 => IChallenge) public challenges;
@@ -26,7 +26,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
 
   // Removes an item from the `items` mapping, and deletes challenge state. Requires that
   // there is not an active or passed challenge for this item. OwnedItemRegistry.remove
-  // requires that this is called by the item owner. LockableItemRegistry.remove requires
+  // requires that this is called by the item owner. TimelockableItemRegistry.remove requires
   // that the item is not locked.
   function remove(bytes32 id) public {
     if (challengeExists(id)) {

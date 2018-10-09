@@ -55,12 +55,12 @@ contract StakedRegistry is OwnedItemRegistry {
 }
 ```
 
-`LockableItemRegistry.sol`
+`TimelockableItemRegistry.sol`
 
 Provides a mapping of unlock times for items. Only allows item removal when the unlock time has been exceeded.
 
 ```
-contract LockableItemRegistry is OwnedItemRegistry {
+contract TimelockableItemRegistry is OwnedItemRegistry {
   mapping(bytes32 => uint) public unlockTimes;
 
   function remove(bytes32 id) public;
@@ -83,7 +83,7 @@ TokenCuratedRegistry is StakedRegistry {
 
   // Removes an item from the `items` mapping, and deletes challenge state. Requires that
   // there is not an active or passed challenge for this item. OwnedItemRegistry.remove
-  // requires that this is called by the item owner. LockableItemRegistry.remove requires
+  // requires that this is called by the item owner. TimelockableItemRegistry.remove requires
   // that the item is not locked.
   function remove(bytes32 id) public;
 

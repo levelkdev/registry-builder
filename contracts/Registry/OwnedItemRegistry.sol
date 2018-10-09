@@ -23,4 +23,6 @@ contract OwnedItemRegistry is BasicRegistry {
     delete owners[id];
     super.remove(id);
   }
+
+  
 }
