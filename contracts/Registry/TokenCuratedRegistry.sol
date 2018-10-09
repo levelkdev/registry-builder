@@ -58,7 +58,7 @@ contract TokenCuratedRegistry is StakedRegistry, LockableItemRegistry {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), reward));
-      delete ownerStakes[id];
+      ownerStakes[id] = 0;
       super.remove(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
