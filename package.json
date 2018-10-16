@@ -32,13 +32,11 @@
     "web3-utils": "1.0.0-beta.36"
   },
   "scripts": {
-    "build": "node scripts/build.js",
-    "cleanup": "rm -rf build/ && mkdir build && rm -rf lib/ && mkdir lib",
-    "compile": "npm run cleanup && truffle compile --all && npm run build",
-    "deploy": "npm run cleanup && truffle migrate --reset && npm run build",
-    "deploy-rinkeby": "npm run cleanup && truffle migrate --reset --network rinkeby && npm run build",
+    "cleanup": "rm -rf build",
+    "compile": "npm run cleanup && truffle compile --all",
+    "deploy": "npm run cleanup && truffle migrate --reset",
+    "deploy-rinkeby": "npm run cleanup && truffle migrate --reset --network rinkeby",
     "test": "scripts/test.sh",
-    "test:truffle": "truffle test",
     "test:coverage": "npm run solidity-coverage",
     "lint": "standard --verbose | snazzy"
   }
