@@ -26,10 +26,8 @@ contract StakedRegistry is OwnedItemRegistry {
     ownerStakes[id] = minStake;
   }
 
-  function remove(bytes32 id) public onlyItemOwner(id) {
-    if (ownerStakes[id] > 0) {
-      require(token.transfer(msg.sender, ownerStakes[id]));
-    }
+  function remove(bytes32 id) public {
+    require(token.transfer(msg.sender, ownerStakes[id]));
     delete ownerStakes[id];
     super.remove(id);
   }
