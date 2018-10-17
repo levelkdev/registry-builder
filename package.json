@@ -25,20 +25,18 @@
     "cross-env": "^5.1.4",
     "dotenv": "6.1.0",
     "ganache-cli": "6.1.8",
-    "lk-test-helpers": "^0.1.3",
+    "lk-test-helpers": "0.1.7",
     "snazzy": "^7.1.1",
     "standard": "^10.0.3",
     "truffle": "4.1.14",
     "web3-utils": "1.0.0-beta.36"
   },
   "scripts": {
-    "build": "node scripts/build.js",
-    "cleanup": "rm -rf build/ && mkdir build && rm -rf lib/ && mkdir lib",
-    "compile": "npm run cleanup && truffle compile --all && npm run build",
-    "deploy": "npm run cleanup && truffle migrate --reset && npm run build",
-    "deploy-rinkeby": "npm run cleanup && truffle migrate --reset --network rinkeby && npm run build",
+    "cleanup": "rm -rf build",
+    "compile": "npm run cleanup && truffle compile --all",
+    "deploy": "npm run cleanup && truffle migrate --reset",
+    "deploy-rinkeby": "npm run cleanup && truffle migrate --reset --network rinkeby",
     "test": "scripts/test.sh",
-    "test:truffle": "truffle test",
     "test:coverage": "npm run solidity-coverage",
     "lint": "standard --verbose | snazzy"
   }
