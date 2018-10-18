@@ -1,4 +1,5 @@
 const { shouldBehaveLikeOwnedItemRegistry } = require('./OwnedItemRegistry.behavior')
+const { shouldBehaveLikeBasicRegistry } = require('./BasicRegistry.behavior')
 
 const OwnedItemRegistry = artifacts.require('OwnedItemRegistry')
 
@@ -9,5 +10,6 @@ contract('OwnedItemRegistry', function (accounts) {
   })
 
   shouldBehaveLikeOwnedItemRegistry(accounts)
+  shouldBehaveLikeBasicRegistry()
 
 })
