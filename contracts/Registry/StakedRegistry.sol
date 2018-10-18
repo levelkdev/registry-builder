@@ -10,7 +10,7 @@ import 'openzeppelin-zos/contracts/token/ERC20/ERC20.sol';
 contract StakedRegistry is OwnedItemRegistry {
   using SafeMath for uint;
 
-  ERC20 token;
+  ERC20 public token;
   uint minStake;      // minimum required amount of tokens to add an item
 
   mapping(bytes32 => uint) public ownerStakes;

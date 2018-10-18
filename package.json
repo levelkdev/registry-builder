@@ -11,6 +11,7 @@
   "dependencies": {
     "moment": "^2.22.0",
     "openzeppelin-zos": "^1.9.1",
+    "plcr-revival": "git://git@github.com:levelkdev/PLCRVoting#81a2590a9aec25122b8e8eb61c252cf5348553c0",
     "truffle-hdwallet-provider": "^0.0.3"
   },
   "devDependencies": {
