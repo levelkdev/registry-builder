@@ -17,7 +17,7 @@ contract('BasicRegistry', () => {
     64
   )
   const itemId = web3Utils.keccak256(itemData)
-  
+
   beforeEach(async () => {
     basicRegistry = await BasicRegistry.new()
   })

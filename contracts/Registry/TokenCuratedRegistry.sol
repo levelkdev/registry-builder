@@ -9,7 +9,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   uint applicationPeriod;
   IChallengeFactory public challengeFactory;
   mapping(bytes32 => IChallenge) public challenges;
-  
+
   constructor(ERC20 _token, uint _minStake, uint _applicationPeriod, IChallengeFactory _challengeFactory)
   StakedRegistry(_token, _minStake)
   public {
@@ -30,7 +30,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // that the item is not locked.
   function remove(bytes32 id) public {
     if (challengeExists(id)) {
-      require(challengeEnded(id) && !challengePassed(id));
+      require(!challenges[id].passed());
     }
     delete challenges[id];
     super.remove(id);
@@ -44,17 +44,17 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   function challenge(bytes32 id) public {
     require(!challengeExists(id));
     require(token.transferFrom(msg.sender, this, minStake));
-    address challenge = challengeFactory.create(this, msg.sender, owners[id]);
+    address challenge = challengeFactory.createChallenge(this, msg.sender, owners[id]);
     require(token.transfer(challenge, minStake.mul(2)));
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
   // is an ended challenge for the item.
   function resolveChallenge(bytes32 id) public {
-    require(challengeEnded(id));
+    challenges[id].close();
     uint reward = challenges[id].reward();
     require(token.transferFrom(challenges[id], this, reward));
-    if (challengePassed(id)) {
+    if (challenges[id].passed()) {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), reward));
@@ -76,25 +76,6 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   function inApplicationPhase(bytes32 id) public view returns (bool) {
     require(exists(id));
     return isLocked(id);
-  }
-
-  // Returns `true` if the challenge for the given item id has passed, and `false` if the
-  // challenge for the given item id has not passed.
-  // Reverts if the item id does not exist.
-  // Reverts if a challenge for this item id does not exist.
-  // Reverts if the challenge has not ended.
-  function challengePassed(bytes32 id) public view returns (bool) {
-    require(challengeEnded(id));
-    return challenges[id].passed();
-  }
-
-  // Returns `true` if the challenge for the given item id has ended, and `false` if the
-  // challenge for the given item id has not ended.
-  // Reverts if the item id does not exist.
-  // Reverts if a challenge for this item id does not exist.
-  function challengeEnded(bytes32 id) public view returns (bool) {
-    require(challengeExists(id));
-    return challenges[id].ended();
   }
 
   // Returns `true` if a challenge exists for the given item id, and `false` if a challenge
