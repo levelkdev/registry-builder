@@ -14,4 +14,8 @@ contract MockTokenCuratedRegistry is TokenCuratedRegistry {
     ownerStakes[id] = ownerStake;
   }
 
+  function setChallenge(bytes32 id, IChallenge challenge) public {
+    challenges[id] = challenge;
+  }
+
 }
