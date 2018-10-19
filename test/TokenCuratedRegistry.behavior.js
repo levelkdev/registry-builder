@@ -3,6 +3,8 @@ const {
   increaseTime,
   constants
 } = require('lk-test-helpers')(web3)
+const chai = require('chai')
+const { expect } = chai.use(require('chai-bignumber')(web3.BigNumber))
 const parseListingTitle = require('./helpers/parseListingTitle')
 
 const Challenge = artifacts.require('MockChallenge')
@@ -16,6 +18,8 @@ function shouldBehaveLikeTokenCuratedRegistry (
   applicationPeriod,
   accounts
 ) {
+
+  const [owner, challenger, rando] = accounts
 
   describe('behaves like a TokenCuratedRegistry', function () {
     
@@ -73,6 +77,61 @@ function shouldBehaveLikeTokenCuratedRegistry (
           })
         })
       })
+    })
+
+    describe('challenge()', function () {
+
+      describe('when listing item exists, there is no existing challenge for the listing, and token transfer succeeds', function () {
+        beforeEach(async function () {
+          await this.registry.add(itemData)
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await this.registry.challenge(itemId, { from: challenger })
+          this.challengeAddress = await this.registry.challenges(itemId)
+        })
+
+        it('should transfer stake from the challenger', async function () {
+          expect(await this.token.balanceOf(challenger)).to.be.bignumber.equal(initialBalance - minStake)
+        })
+
+        it('should transfer owner and challenger stake to the challenge', async function () {
+          expect(await this.token.balanceOf(this.challengeAddress)).to.be.bignumber.equal(minStake * 2)
+        })
+
+        it('should transfer owner stake from the registry', async function () {
+          expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(0)
+        })
+
+        it('should create challenge with correct params', async function () {
+          expect(await this.challengeFactory.registry()).to.equal(this.registry.address)
+          expect(await this.challengeFactory.challenger()).to.equal(challenger)
+          expect(await this.challengeFactory.itemOwner()).to.equal(owner)
+        })
+      })
+
+      describe('when listing item does not exist', function () {
+        it('reverts', async function () {
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await shouldFail.reverting(this.registry.challenge(itemId, { from: challenger }))
+        })
+      })
+
+      describe('when challenge for listing item exists', function () {
+        it('reverts', async function () {
+          await this.registry.add(itemData)
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await this.registry.challenge(itemId, { from: challenger })
+          await this.token.approve(this.registry.address, minStake, { from: rando })
+          await shouldFail.reverting(this.registry.challenge(itemId, { from: rando }))
+        })
+      })
+
+      describe('when challenger stake token transfer fails', function () {
+        it('reverts', async function () {
+          await this.registry.add(itemData)
+          await shouldFail.reverting(this.registry.challenge(itemId, { from: challenger }))
+        })
+      })
+
     })
 
   })
