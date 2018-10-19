@@ -1,3 +1,4 @@
+const { shouldFail, constants } = require('lk-test-helpers')(web3)
 const { shouldBehaveLikeTokenCuratedRegistry } = require('./TokenCuratedRegistry.behavior')
 const { shouldBehaveLikeTimelockableItemRegistry } = require('./TimelockableItemRegistry.behavior')
 const { shouldBehaveLikeStakedRegistry } = require('./StakedRegistry.behavior')
@@ -6,6 +7,8 @@ const { shouldBehaveLikeBasicRegistry } = require('./BasicRegistry.behavior')
 
 const TestToken = artifacts.require('TestToken')
 const TokenCuratedRegistry = artifacts.require('MockTokenCuratedRegistry')
+
+const { ZERO_ADDRESS } = constants
 
 contract('TokenCuratedRegistry', function (accounts) {
 
@@ -21,6 +24,19 @@ contract('TokenCuratedRegistry', function (accounts) {
       [owner, rando],
       initialBalance
     )
+  })
+
+  describe('when challenge factory address is zero', function () {
+    it('contract deployment reverts', async function () {
+      await shouldFail.reverting(
+        TokenCuratedRegistry.new(
+          this.token.address,
+          minStake,
+          applicationPeriod,
+          ZERO_ADDRESS
+        )
+      )
+    })
   })
 
   describe('when application period is greater than 0', function () {
