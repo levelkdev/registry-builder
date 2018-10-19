@@ -7,7 +7,7 @@ const Token = artifacts.require('TestToken.sol')
 const PLCRVoting = artifacts.require('PLCRVotingMock.sol')
 const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol')
 
-contract.only('PLCRVotingChallenge', (accounts) => {
+contract('PLCRVotingChallenge', (accounts) => {
   let challenge, registry, plcrVoting, token
 
   const mockAddresses = [
