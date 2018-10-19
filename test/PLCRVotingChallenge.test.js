@@ -1,5 +1,5 @@
 import lkTestHelpers from 'lk-test-helpers'
-const { expectRevert, expectEvent, expectThrow } = lkTestHelpers(web3)
+const { shouldFail, expectEvent } = lkTestHelpers(web3)
 const BigNumber = require('bignumber.js');
 
 const RegistryMock = artifacts.require('RegistryMock.sol')
@@ -25,7 +25,7 @@ contract('PLCRVotingChallenge', (accounts) => {
   const PERCENT_VOTER_REWARD      = 25
 
   beforeEach(async () => {
-    token       = await Token.new('TCR Token', 'TCR', 18, [accounts[0], accounts[1], accounts[2]], 100 * 10 ** 18)
+    token       = await Token.new([accounts[0], accounts[1], accounts[2]], 100 * 10 ** 18)
     registry    = await RegistryMock.new(token.address)
     plcrVoting  = await PLCRVoting.new(token.address)
     challenge   = await initializeChallenge()
@@ -64,14 +64,14 @@ contract('PLCRVotingChallenge', (accounts) => {
 
   describe('when deployed with invalid parameters', async () => {
     it('reverts if percentVoterReward is over 100', async () => {
-      await expectRevert(initializeChallenge({percentVoterReward: 101}))
+      await shouldFail.reverting(initializeChallenge({percentVoterReward: 101}))
     })
   })
 
   describe('close()', async () => {
     describe('when called under valid conditions', async () => {
       beforeEach(async () => {
-        await plcrVoting.set_mockPollEnded(true)
+        await plcrVoting.set_mock_pollEnded(true)
       })
 
       it('sets isClosed to true', async () => {
@@ -89,31 +89,32 @@ contract('PLCRVotingChallenge', (accounts) => {
       })
 
       it('emits a ChallengeClosed event', async () => {
-        await expectEvent('ChallengeClosed', challenge.close())
+        const { logs } = await challenge.close()
+        await expectEvent.inLogs(logs, 'ChallengeClosed')
       })
     })
 
     describe('when called under invalid conditions', async () => {
 
       it('reverts if poll has not yet ended', async () => {
-        await expectRevert(challenge.close())
+        await shouldFail.reverting(challenge.close())
       })
 
       it('reverts if close() has already been called successfully', async () => {
-        await plcrVoting.set_mockPollEnded(true)
+        await plcrVoting.set_mock_pollEnded(true)
         await challenge.close()
-        expectRevert(challenge.close())
+        shouldFail.reverting(challenge.close())
       })
     })
   })
 
   describe('passed()', async () => {
     beforeEach(async () => {
-      await plcrVoting.set_mockPollEnded(true)
+      await plcrVoting.set_mock_pollEnded(true)
     })
 
     it('reverts if challenge is not officially closed', async () => {
-      await expectRevert(challenge.passed())
+      await shouldFail.reverting(challenge.passed())
     })
 
     it('returns true if the poll in favor of listing has failed', async () => {
@@ -131,11 +132,11 @@ contract('PLCRVotingChallenge', (accounts) => {
 
   describe('reward()', async () => {
     beforeEach(async () => {
-      await plcrVoting.set_mockPollEnded(true)
+      await plcrVoting.set_mock_pollEnded(true)
     })
 
     it('reverts if challenge is not officially closed', async () => {
-      await expectRevert(challenge.reward())
+      await shouldFail.reverting(challenge.reward())
     })
 
     it('returns challengerStake x 2 if no one voted', async () => {
@@ -159,19 +160,19 @@ contract('PLCRVotingChallenge', (accounts) => {
       voterTokenAmount = 10
       voter = accounts[0]
       salt = 123
-      await plcrVoting.set_mockPollEnded(true)
+      await plcrVoting.set_mock_pollEnded(true)
       await plcrVoting.set_mock_getNumPassingTokens(voterTokenAmount)
       await plcrVoting.set_mock_getTotalNumberOfTokensForWinningOption(20)
     })
 
     it('reverts if challenge is not officially closed', async () => {
-      await expectRevert(challenge.claimVoterReward(salt))
+      await shouldFail.reverting(challenge.claimVoterReward(salt))
     })
 
     it('reverts if the sender has already claimed reward', async () => {
       await challenge.close()
       await challenge.claimVoterReward(salt, {from: voter})
-      await expectRevert(challenge.claimVoterReward(salt))
+      await shouldFail.reverting(challenge.claimVoterReward(salt))
     })
 
     it('increments voterTokensClaimed by the correct amount', async () => {
@@ -214,7 +215,8 @@ contract('PLCRVotingChallenge', (accounts) => {
 
     it('emits a RewardClaimed event', async () => {
       await challenge.close()
-      await expectEvent('RewardClaimed', challenge.claimVoterReward(salt, {from: voter}))
+      const { logs } = await challenge.claimVoterReward(salt, {from: voter})
+      await expectEvent.inLogs(logs, 'RewardClaimed')
     })
   })
 
@@ -227,7 +229,7 @@ contract('PLCRVotingChallenge', (accounts) => {
       rewardPool = (await challenge.rewardPool()).toNumber()
       voterRewardsClaimed = (await challenge.voterRewardsClaimed()).toNumber()
       voterTokensClaimed = (await challenge.voterTokensClaimed()).toNumber()
-      await plcrVoting.set_mockPollEnded(true)
+      await plcrVoting.set_mock_pollEnded(true)
       await plcrVoting.set_mock_getNumPassingTokens(voterTokenAmount)
       await plcrVoting.set_mock_getTotalNumberOfTokensForWinningOption(winningTokenAmount)
     })

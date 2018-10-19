@@ -1,5 +1,5 @@
 import lkTestHelpers from 'lk-test-helpers'
-const { expectRevert, expectEvent, expectThrow } = lkTestHelpers(web3)
+const { expectEvent } = lkTestHelpers(web3)
 const BigNumber = require('bignumber.js');
 
 const RegistryMock = artifacts.require('RegistryMock.sol')
@@ -25,7 +25,7 @@ contract('PLCRVotingChallengeFactory', (accounts) => {
   const PERCENT_VOTER_REWARD = 15
 
   beforeEach(async () => {
-    token      = await Token.new('TCR Token', 'TCR', 18, [accounts[0], accounts[1], accounts[2]], 100 * 10 ** 18)
+    token      = await Token.new([accounts[0], accounts[1], accounts[2]], 100 * 10 ** 18)
     plcrVoting = await PLCRVoting.new(token.address)
     registry = await RegistryMock.new(token.address)
     challenger = accounts[1]

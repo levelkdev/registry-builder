@@ -30,7 +30,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // that the item is not locked.
   function remove(bytes32 id) public {
     if (challengeExists(id)) {
-      require(!challengePassed(id));
+      require(!challenges[id].passed());
     }
     delete challenges[id];
     super.remove(id);
@@ -54,7 +54,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     challenges[id].close();
     uint reward = challenges[id].reward();
     require(token.transferFrom(challenges[id], this, reward));
-    if (challengePassed(id)) {
+    if (challenges[id].passed()) {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), reward));
@@ -76,16 +76,6 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   function inApplicationPhase(bytes32 id) public view returns (bool) {
     require(exists(id));
     return isLocked(id);
-  }
-
-  // Returns `true` if the challenge for the given item id has passed, and `false` if the
-  // challenge for the given item id has not passed.
-  // Reverts if the item id does not exist.
-  // Reverts if a challenge for this item id does not exist.
-  // Reverts if the challenge has not ended.
-  function challengePassed(bytes32 id) public view returns (bool) {
-    require(challengeExists(id));
-    return challenges[id].passed();
   }
 
   // Returns `true` if a challenge exists for the given item id, and `false` if a challenge

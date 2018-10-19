@@ -1,10 +1,10 @@
 pragma solidity ^0.4.24;
 
-import "plcr-revival/contracts/PLCRVoting.sol";
+import 'openzeppelin-zos/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-zos/contracts/math/SafeMath.sol';
+import "plcr-revival/contracts/PLCRVoting.sol";
 import '../IChallenge.sol';
 import '../../Registry/TokenCuratedRegistry.sol';
-import 'openzeppelin-zos/contracts/token/ERC20/ERC20.sol';
 
 /**
  * PLCRVotingChallenge is a registry challenge that creates a poll on a
@@ -64,10 +64,6 @@ contract PLCRVotingChallenge is IChallenge {
     rewardPool = (_percentVoterReward.mul(challengerStake)).div(100);
   }
 
-  // ====================
-  // CHALLENGE INTERFACE:
-  // ====================
-
   // @notice Close challenge
   // @dev Closes challenge if PLCRVoting poll has ended and challenge
   //      is not yet closed
@@ -80,19 +76,16 @@ contract PLCRVotingChallenge is IChallenge {
   }
 
   // @notice Determines if the challenge has passed
-  // @dev Check if votesAgainst out of totalVotes exceeds votesQuorum (requires ended)
+  // @dev Check if votesAgainst out of totalVotes exceeds votesQuorum
+  //      returns true if PLCR voting has passed
+  //      returns false if PLCR voting has not passed
+  //      reverts if challenge has not been closed.
   function passed() public view returns (bool) {
       require(isClosed);
 
-      // if votes do not vote in favor of listing, challenge passes
+      // if voters do not vote in favor of item, challenge passes
       return !voting.isPassed(pollID);
   }
-
-
-
-  // =========================
-  // WINNER REWARD INTERFACE:
-  // =========================
 
   // @dev     returns the total reward amount to be distributed to challenge winner
   function reward() public view returns (uint rewardAmount) {
@@ -100,17 +93,11 @@ contract PLCRVotingChallenge is IChallenge {
 
     // Edge case, nobody voted, give all tokens to the challenger.
     if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
-      rewardAmount = challengerStake * 2;
+      rewardAmount = challengerStake.mul(2);
     } else {
-      rewardAmount = challengerStake * 2 - rewardPool;
+      rewardAmount = challengerStake.mul(2).sub(rewardPool);
     }
   }
-
-
-
-  // =========================
-  // VOTER REWARD INTERFACE:
-  // =========================
 
   // @dev           Called by a voter to claim their reward for each completed vote
   // @param _salt   The salt of a voter's commit hash
@@ -121,8 +108,8 @@ contract PLCRVotingChallenge is IChallenge {
     uint voterTokens = voting.getNumPassingTokens(msg.sender, pollID);
     uint reward = voterReward(msg.sender, _salt);
 
-    voterTokensClaimed += voterTokens;
-    voterRewardsClaimed += reward;
+    voterTokensClaimed = voterTokensClaimed.add(voterTokens);
+    voterRewardsClaimed = voterRewardsClaimed.add(reward);
 
     // Ensures a voter cannot claim tokens again
     tokenClaims[msg.sender] = true;
@@ -137,9 +124,9 @@ contract PLCRVotingChallenge is IChallenge {
   // @return         The uint indicating the voter's reward
   function voterReward(address _voter, uint _salt) public view returns (uint) {
       uint voterTokens = voting.getNumPassingTokens(_voter, pollID);
-      uint remainingRewardPool = rewardPool - voterRewardsClaimed;
-      uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID) - voterTokensClaimed;
-      return (voterTokens * remainingRewardPool) / remainingTotalTokens;
+      uint remainingRewardPool = rewardPool.sub(voterRewardsClaimed);
+      uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID).sub(voterTokensClaimed);
+      return (voterTokens.mul(remainingRewardPool)).div(remainingTotalTokens);
   }
 
   // @dev returns challenger address

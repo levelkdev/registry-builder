@@ -28,7 +28,7 @@ contract PLCRVotingMock {
   // =========================
   // pollEnded Mock
   // =========================
-  function set_mockPollEnded(bool ended) public {
+  function set_mock_pollEnded(bool ended) public {
     mock_pollEnded = ended;
   }
 
