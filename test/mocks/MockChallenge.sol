@@ -4,14 +4,9 @@ import '../../contracts/Challenge/IChallenge.sol';
 
 contract MockChallenge is IChallenge {
 
-  bool mock_ended;
   bool mock_passed;
   uint mock_reward;
   address mock_challenger;
-
-  function set_mock_ended (bool _val) {
-    mock_ended = _val;
-  }
 
   function set_mock_passed (bool _val) {
     mock_passed = _val;
@@ -25,15 +20,13 @@ contract MockChallenge is IChallenge {
     mock_challenger = _val;
   }
 
-  function ended() view returns(bool) {
-    return mock_ended;
-  }
+  function close() public { }
 
-  function passed() view returns (bool) {
+  function passed() public view returns (bool) {
     return mock_passed;
   }
 
-  function reward() view returns (uint) {
+  function reward() public view returns (uint) {
     return mock_reward;
   }
 
