@@ -34,8 +34,7 @@ contract BasicRegistry is IRegistry {
     // @param id The ID of the item to remove
     function remove(bytes32 id) public {
         require(exists(id));
-        delete items[id];
-        ItemRemoved(id);
+        _remove(id);
     }
 
     //  Get an item from the registry.
@@ -46,5 +45,10 @@ contract BasicRegistry is IRegistry {
 
     function exists(bytes32 id) public view returns (bool) {
         return items[id] != 0x0;
+    }
+
+    function _remove(bytes32 id) internal {
+        delete items[id];
+        ItemRemoved(id);
     }
 }
