@@ -46,7 +46,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
     describe('remove()', function () {
       beforeEach(async function () {
         await this.registry.add(itemData)
-        this.registry.setUnlockTime(itemId, 0)
+        await this.registry.setUnlockTime(itemId, 0)
       })
 
       describe('when there is a challenge for the item', function () {
@@ -223,6 +223,62 @@ function shouldBehaveLikeTokenCuratedRegistry ({
             expect(await this.token.balanceOf(this.challenge.address)).to.be.bignumber.equal(minStake * 2 - mockChallengeReward)
           })
         }
+      })
+    })
+
+    describe('inApplicationPhase()', function () {
+      describe('when item exists', function () {
+        beforeEach(async function () {
+          await this.registry.add(itemData)
+        })
+
+        describe('and item is locked', function () {
+          it('returns true', async function () {
+            await this.registry.setUnlockTime(itemId, this.now + 1000)
+            expect(await this.registry.inApplicationPhase(itemId)).to.be.true
+          })
+        })
+
+        describe('and item is not locked', function () {
+          it('returns false', async function () {
+            await this.registry.setUnlockTime(itemId, 0)
+            expect(await this.registry.inApplicationPhase(itemId)).to.be.false
+          })
+        })
+      })
+
+      describe('when item does not exist', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(this.registry.inApplicationPhase(itemId))
+        })
+      })
+    })
+
+    describe('challengeExists()', function () {
+      describe('when item exists', function () {
+        beforeEach(async function () {
+          await this.registry.add(itemData)
+        })
+        
+        describe('and challenge exists', function () {
+          it('returns true', async function () {
+            await this.token.approve(this.registry.address, minStake, { from: challenger })
+            await this.registry.challenge(itemId, { from: challenger })
+            expect(await this.registry.challengeExists(itemId)).to.be.true
+          })
+        })
+        
+        describe('and challenge does not exist', function () {
+          it('returns false', async function () {
+            expect(await this.registry.challengeExists(itemId)).to.be.false
+          })
+        })
+      })
+
+      describe('when item does not exist', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(this.registry.challengeExists(itemId))
+        })
       })
     })
   })
