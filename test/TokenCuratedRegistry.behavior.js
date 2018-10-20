@@ -158,6 +158,10 @@ function shouldBehaveLikeTokenCuratedRegistry ({
             expect(await this.registry.ownerStakes(itemId)).to.be.bignumber.equal(0)
           })
 
+          it('deletes item unlocked state', async function () {
+            expect(await this.registry.unlockTimes(itemId)).to.be.bignumber.equal(0)
+          })
+
           it('deletes the item owner', async function () {
             expect(await this.registry.owners(itemId)).to.equal(ZERO_ADDRESS)
           })
@@ -167,7 +171,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           })
 
           shouldCloseChallenge()
-          shouldUnlockItem()
           shouldDeleteChallenge()
           shouldTransferRewardFromChallenge()
         })
@@ -194,8 +197,11 @@ function shouldBehaveLikeTokenCuratedRegistry ({
             expect(await this.registry.exists(itemId)).to.be.true
           })
 
+          it('unlocks the item', async function () {
+            expect(await this.registry.isLocked(itemId)).to.be.false
+          })
+
           shouldCloseChallenge()
-          shouldUnlockItem()
           shouldDeleteChallenge()
           shouldTransferRewardFromChallenge()
         })
@@ -203,12 +209,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         function shouldCloseChallenge () {
           it('closes the challenge', async function () {
             expect(await this.challenge.isClosed()).to.be.true
-          })
-        }
-
-        function shouldUnlockItem () {
-          it('unlocked the item', async function () {
-            expect(await this.registry.isLocked(itemId)).to.be.false
           })
         }
 

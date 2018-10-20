@@ -76,7 +76,6 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // is challenged and the challenge fails.
   // Reverts if the item id does not exist.
   function inApplicationPhase(bytes32 id) public view returns (bool) {
-    require(exists(id));
     return isLocked(id);
   }
 
