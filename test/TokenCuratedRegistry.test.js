@@ -16,6 +16,7 @@ contract('TokenCuratedRegistry', function (accounts) {
   const [owner, challenger, rando] = accounts
   const initialBalance = 100 * 10 ** 18
   const minStake = 10 * 10 ** 18
+  const mockChallengeReward = minStake * 2 * 75 / 100
   const applicationPeriod = 60 * 60
 
   beforeEach(async function () {
@@ -24,7 +25,7 @@ contract('TokenCuratedRegistry', function (accounts) {
       [owner, challenger, rando],
       initialBalance
     )
-    this.challengeFactory = await ChallengeFactory.new()
+    this.challengeFactory = await ChallengeFactory.new(mockChallengeReward)
   })
 
   describe('when challenge factory address is zero', function () {
@@ -51,7 +52,13 @@ contract('TokenCuratedRegistry', function (accounts) {
       await this.token.approve(this.registry.address, minStake, { from: owner })
     })
 
-    shouldBehaveLikeTokenCuratedRegistry(minStake, initialBalance, applicationPeriod, accounts)
+    shouldBehaveLikeTokenCuratedRegistry({
+      minStake,
+      mockChallengeReward,
+      initialBalance,
+      applicationPeriod,
+      accounts
+    })
   })
 
   describe('when application period is 0', function () {

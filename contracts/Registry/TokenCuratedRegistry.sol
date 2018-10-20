@@ -55,17 +55,18 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     challenges[id].close();
     uint reward = challenges[id].reward();
     require(token.transferFrom(challenges[id], this, reward));
+    delete unlockTimes[id];
     if (challenges[id].passed()) {
       // if the challenge passed, reward the challenger (via token.transfer) and remove
       // the item.
       require(token.transfer(challenges[id].challenger(), reward));
       ownerStakes[id] = 0;
+      owners[id] = msg.sender;
       super.remove(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
       ownerStakes[id] = ownerStakes[id].add(reward).sub(minStake);
     }
-    delete unlockTimes[id];
     delete challenges[id];
   }
 

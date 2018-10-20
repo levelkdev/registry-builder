@@ -1,8 +1,11 @@
 pragma solidity ^0.4.24;
 
+import 'openzeppelin-zos/contracts/token/ERC20/ERC20.sol';
 import '../../contracts/Challenge/IChallenge.sol';
 
 contract MockChallenge is IChallenge {
+
+  bool public isClosed;
 
   bool mock_passed;
   uint mock_reward;
@@ -20,7 +23,9 @@ contract MockChallenge is IChallenge {
     mock_challenger = _val;
   }
 
-  function close() public { }
+  function close() public {
+    isClosed = true;
+  }
 
   function passed() public view returns (bool) {
     return mock_passed;
@@ -32,6 +37,10 @@ contract MockChallenge is IChallenge {
 
   function challenger() view returns (address) {
     return mock_challenger;
+  }
+
+  function approveRewardTransfer (ERC20 token, address registry) public {
+    token.approve(registry, mock_reward);
   }
 
 }

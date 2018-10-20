@@ -12,13 +12,13 @@ const Challenge = artifacts.require('MockChallenge')
 const { data: itemData, hash: itemId } = parseListingTitle('listing 001')
 const { ZERO_BYTES32, ZERO_ADDRESS } = constants
 
-function shouldBehaveLikeTokenCuratedRegistry (
+function shouldBehaveLikeTokenCuratedRegistry ({
   minStake,
+  mockChallengeReward,
   initialBalance,
   applicationPeriod,
   accounts
-) {
-
+}) {
   const [owner, challenger, rando] = accounts
 
   describe('behaves like a TokenCuratedRegistry', function () {
@@ -134,8 +134,98 @@ function shouldBehaveLikeTokenCuratedRegistry (
 
     })
 
-  })
+    describe('resolveChallenge()', function () {
+      describe('when challenge exists', function () {
+        beforeEach(async function () {
+          await this.registry.add(itemData)
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await this.registry.challenge(itemId, { from: challenger })
+          this.challenge = await Challenge.at(await this.registry.challenges(itemId))
+          await this.challenge.approveRewardTransfer(this.token.address, this.registry.address)
+        })
 
+        describe('when challenge has passed', function () {
+          beforeEach(async function () {
+            await this.challenge.set_mock_passed(true)
+            await this.registry.resolveChallenge(itemId, { from: rando })
+          })
+
+          it('should transfer reward to the challenger', async function () {
+            expect(await this.token.balanceOf(challenger)).to.be.bignumber.equal(initialBalance + mockChallengeReward - minStake)
+          })
+
+          it('deletes the owner stake', async function () {
+            expect(await this.registry.ownerStakes(itemId)).to.be.bignumber.equal(0)
+          })
+
+          it('deletes the item owner', async function () {
+            expect(await this.registry.owners(itemId)).to.equal(ZERO_ADDRESS)
+          })
+
+          it('deletes the item', async function () {
+            expect(await this.registry.exists(itemId)).to.be.false
+          })
+
+          shouldCloseChallenge()
+          shouldUnlockItem()
+          shouldDeleteChallenge()
+          shouldTransferRewardFromChallenge()
+        })
+
+        describe('when challenge has failed', function () {
+          beforeEach(async function () {
+            await this.challenge.set_mock_passed(false)
+            await this.registry.resolveChallenge(itemId, { from: rando })
+          })
+
+          it('transfers the reward to the registry', async function () {
+            expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(mockChallengeReward)
+          })
+
+          it('adds the reward to the item owner\'s stake', async function () {
+            expect(await this.registry.ownerStakes(itemId)).to.be.bignumber.equal(mockChallengeReward)
+          })
+
+          it('does not change the item owner', async function () {
+            expect(await this.registry.owners(itemId)).to.equal(owner)
+          })
+
+          it('does not delete the item', async function () {
+            expect(await this.registry.exists(itemId)).to.be.true
+          })
+
+          shouldCloseChallenge()
+          shouldUnlockItem()
+          shouldDeleteChallenge()
+          shouldTransferRewardFromChallenge()
+        })
+
+        function shouldCloseChallenge () {
+          it('closes the challenge', async function () {
+            expect(await this.challenge.isClosed()).to.be.true
+          })
+        }
+
+        function shouldUnlockItem () {
+          it('unlocked the item', async function () {
+            expect(await this.registry.isLocked(itemId)).to.be.false
+          })
+        }
+
+        function shouldDeleteChallenge () {
+          it('deletes the challenge from the registry', async function () {
+            expect(await this.registry.challenges(itemId)).to.equal(ZERO_ADDRESS)
+          })
+        }
+
+        function shouldTransferRewardFromChallenge () {
+          it('transfers reward from the challenge', async function () {
+            expect(await this.token.balanceOf(this.challenge.address)).to.be.bignumber.equal(minStake * 2 - mockChallengeReward)
+          })
+        }
+      })
+    })
+  })
 }
 
 module.exports = {
