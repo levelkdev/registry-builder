@@ -56,18 +56,16 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     uint reward = challenges[id].reward();
     require(token.transferFrom(challenges[id], this, reward));
     if (challenges[id].passed()) {
-      // if the challenge passed, reward the challenger (via token.transfer) and remove
-      // the item.
+      // if the challenge passed, reward the challenger (via token.transfer), then remove
+      // the item and all state related to it
       require(token.transfer(challenges[id].challenger(), reward));
-      ownerStakes[id] = 0;
-      delete owners[id];
-      _remove(id);
+      _reject(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
       ownerStakes[id] = ownerStakes[id].add(reward).sub(minStake);
+      delete unlockTimes[id];
+      delete challenges[id];
     }
-    delete unlockTimes[id];
-    delete challenges[id];
   }
 
   // Returns `true` if the item is locked, and `false` if the item is unlocked. We know that
@@ -85,5 +83,14 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   function challengeExists(bytes32 id) public view returns (bool) {
     require(exists(id));
     return address(challenges[id]) != 0x0;
+  }
+
+  // Removes an item and all state related to the item
+  function _reject(bytes32 id) internal {
+    ownerStakes[id] = 0;
+    delete owners[id];
+    delete unlockTimes[id];
+    delete challenges[id];
+    _remove(id);
   }
 }
