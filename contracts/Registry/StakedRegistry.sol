@@ -16,6 +16,7 @@ contract StakedRegistry is OwnedItemRegistry {
   mapping(bytes32 => uint) public ownerStakes;
 
   constructor(ERC20 _token, uint _minStake) public {
+    require(address(_token) != 0x0);
     token = _token;
     minStake = _minStake;
   }
