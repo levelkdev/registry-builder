@@ -46,15 +46,14 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     require(!challengeExists(id));
     require(token.transferFrom(msg.sender, this, minStake));
     challenges[id] = IChallenge(challengeFactory.createChallenge(this, msg.sender, owners[id]));
-    require(token.transfer(challenges[id], minStake.mul(2)));
+    require(token.approve(challenges[id], challenges[id].requiredFundsAmount()));
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
   // is an ended challenge for the item.
   function resolveChallenge(bytes32 id) public {
     challenges[id].close();
-    uint reward = challenges[id].reward();
-    require(token.transferFrom(challenges[id], this, reward));
+    uint reward = challenges[id].winnerReward();
     if (challenges[id].passed()) {
       // if the challenge passed, reward the challenger (via token.transfer), then remove
       // the item and all state related to it

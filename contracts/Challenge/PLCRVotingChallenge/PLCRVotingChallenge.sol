@@ -26,7 +26,7 @@ contract PLCRVotingChallenge is IChallenge {
   TokenCuratedRegistry public registry;  // address of registry
   PLCRVoting public voting;              // address of PLCRVoting Contract
   uint public pollID;                    // poll ID for PLCRVoting contract
-  uint public rewardPool;                // pool of tokens to be distributed to winning voters
+  uint public voterRewardPool;           // pool of tokens to be distributed to winning voters
   bool public isClosed;                  // signifies whether challenge has been closed
   uint public voterTokensClaimed;        // total amount of winning tokens voters have received rewards for thus far
   uint public voterRewardsClaimed;       // total amount of rewards distributed to voters thus far
@@ -61,7 +61,7 @@ contract PLCRVotingChallenge is IChallenge {
     registry = TokenCuratedRegistry(_registry);
     voting = PLCRVoting(_plcrVoting);
     pollID = voting.startPoll(voteQuorum, commitStageLength, revealStageLength);
-    rewardPool = (_percentVoterReward.mul(challengerStake)).div(100);
+    voterRewardPool = (_percentVoterReward.mul(challengerStake)).div(100);
   }
 
   // @notice Close challenge
@@ -71,7 +71,6 @@ contract PLCRVotingChallenge is IChallenge {
     require(voting.pollEnded(pollID) && !isClosed);
     isClosed = true;
 
-    require(registry.token().approve(registry, reward()));
     emit ChallengeClosed();
   }
 
@@ -87,15 +86,21 @@ contract PLCRVotingChallenge is IChallenge {
       return !voting.isPassed(pollID);
   }
 
-  // @dev     returns the total reward amount to be distributed to challenge winner
-  function reward() public view returns (uint rewardAmount) {
-    require(isClosed);
+  // @notice Returns the amount of tokens the challenge needs to
+  //         carry out functionality
+  // @dev    returns voterRewardPool so the challenge can disburse
+  //         voter rewards
+  function requiredFundsAmount() public view returns (uint) {
+    return voterRewardPool;
+  }
 
-    // Edge case, nobody voted, give all tokens to the challenger.
+  // @dev   returns the total reward amount to be distributed to challenge winner
+  function winnerReward() public view returns (uint) {
+    require(isClosed);
     if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
-      rewardAmount = challengerStake.mul(2);
+      return challengerStake.mul(2);
     } else {
-      rewardAmount = challengerStake.mul(2).sub(rewardPool);
+      return (challengerStake.mul(2)).sub(voterRewardPool);
     }
   }
 
@@ -113,6 +118,8 @@ contract PLCRVotingChallenge is IChallenge {
 
     // Ensures a voter cannot claim tokens again
     tokenClaims[msg.sender] = true;
+
+    require(registry.token().transferFrom(registry, this, reward));
     require(registry.token().transfer(msg.sender, reward));
 
     RewardClaimed(reward, msg.sender);
@@ -124,9 +131,9 @@ contract PLCRVotingChallenge is IChallenge {
   // @return         The uint indicating the voter's reward
   function voterReward(address _voter, uint _salt) public view returns (uint) {
       uint voterTokens = voting.getNumPassingTokens(_voter, pollID);
-      uint remainingRewardPool = rewardPool.sub(voterRewardsClaimed);
+      uint remainingvoterRewardPool = voterRewardPool.sub(voterRewardsClaimed);
       uint remainingTotalTokens = voting.getTotalNumberOfTokensForWinningOption(pollID).sub(voterTokensClaimed);
-      return (voterTokens.mul(remainingRewardPool)).div(remainingTotalTokens);
+      return (voterTokens.mul(remainingvoterRewardPool)).div(remainingTotalTokens);
   }
 
   // @dev returns challenger address
