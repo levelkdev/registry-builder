@@ -90,7 +90,7 @@ contract PLCRVotingChallenge is IChallenge {
   //         carry out functionality
   // @dev    returns voterRewardPool so the challenge can disburse
   //         voter rewards
-  function requiredFundsAmount() public view returns (uint) {
+  function fundsRequired() public view returns (uint) {
     return voterRewardPool;
   }
 

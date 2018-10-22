@@ -11,10 +11,10 @@ interface IChallenge {
   // reverts if challenge has not been closed
   function passed() public view returns (bool);
 
-  // returns the amount of tokens the challenge must
+  // @notice returns the amount of tokens the challenge must
   // obtain to carry out functionality
-  function requiredFundsAmount() public view returns (uint);
+  function fundsRequired() public view returns (uint);
 
-  // returns amount to be rewarded to challenge winner
+  // @dev returns amount to be rewarded to challenge winner
   function winnerReward() public view returns (uint);
 }

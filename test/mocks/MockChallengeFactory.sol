@@ -20,7 +20,7 @@ contract MockChallengeFactory is IChallengeFactory {
     itemOwner = _itemOwner;
     MockChallenge mockChallenge = new MockChallenge();
     mockChallenge.set_mock_challenger(_challenger);
-    mockChallenge.set_mock_reward(reward);
+    mockChallenge.set_mock_winnerReward(reward);
     return address(mockChallenge);
   }
 

@@ -8,19 +8,24 @@ contract MockChallenge is IChallenge {
   bool public isClosed;
 
   bool mock_passed;
-  uint mock_reward;
+  uint mock_winnerReward;
   address mock_challenger;
+  uint mock_fundsRequired;
 
   function set_mock_passed (bool _val) {
     mock_passed = _val;
   }
 
-  function set_mock_reward (uint _val) {
-    mock_reward = _val;
+  function set_mock_winnerReward (uint _val) {
+    mock_winnerReward = _val;
   }
 
   function set_mock_challenger (address _val) {
     mock_challenger = _val;
+  }
+
+  function set_mock_fundsRequired(uint _val) {
+    mock_fundsRequired = _val;
   }
 
   function close() public {
@@ -31,16 +36,20 @@ contract MockChallenge is IChallenge {
     return mock_passed;
   }
 
-  function reward() public view returns (uint) {
-    return mock_reward;
+  function winnerReward() public view returns (uint) {
+    return mock_winnerReward;
   }
 
   function challenger() view returns (address) {
     return mock_challenger;
   }
 
+  function fundsRequired() view returns (uint) {
+    return mock_fundsRequired;
+  }
+
   function approveRewardTransfer (ERC20 token, address registry) public {
-    token.approve(registry, mock_reward);
+    token.approve(registry, mock_winnerReward);
   }
 
 }

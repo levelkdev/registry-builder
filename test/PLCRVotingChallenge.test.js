@@ -122,11 +122,11 @@ contract('PLCRVotingChallenge', (accounts) => {
     })
   })
 
-  describe('requiredFundsAmount()', async () => {
+  describe('fundsRequired()', async () => {
     it('returns voterRewardPool', async () => {
-      let requiredFundsAmount = (await challenge.requiredFundsAmount()).toNumber()
+      let fundsRequired = (await challenge.fundsRequired()).toNumber()
       let voterRewardPool = (await challenge.voterRewardPool()).toNumber()
-      expect(requiredFundsAmount).to.equal(voterRewardPool)
+      expect(fundsRequired).to.equal(voterRewardPool)
     })
   })
 
