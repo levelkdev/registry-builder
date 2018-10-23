@@ -47,9 +47,4 @@ contract MockChallenge is IChallenge {
   function fundsRequired() view returns (uint) {
     return mock_fundsRequired;
   }
-
-  function approveRewardTransfer (ERC20 token, address registry) public {
-    token.approve(registry, mock_winnerReward);
-  }
-
 }

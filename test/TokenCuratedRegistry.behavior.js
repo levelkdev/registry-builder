@@ -146,7 +146,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           await this.token.approve(this.registry.address, minStake, { from: challenger })
           await this.registry.challenge(itemId, { from: challenger })
           this.challenge = await Challenge.at(await this.registry.challenges(itemId))
-          await this.challenge.approveRewardTransfer(this.token.address, this.registry.address)
         })
 
         describe('when challenge has passed', function () {
