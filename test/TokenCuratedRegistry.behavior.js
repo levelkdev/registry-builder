@@ -22,7 +22,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
   const [owner, challenger, rando] = accounts
 
   describe('behaves like a TokenCuratedRegistry', function () {
-    
+
     describe('add()', function () {
       beforeEach(async function () {
         await this.registry.add(itemData)
@@ -54,7 +54,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           this.challenge = await Challenge.new()
           await this.registry.setChallenge(itemId, this.challenge.address)
         })
-        
+
         describe('and the challenge has failed', function () {
           beforeEach(async function () {
             await this.challenge.set_mock_passed(false)
@@ -87,18 +87,15 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           await this.token.approve(this.registry.address, minStake, { from: challenger })
           await this.registry.challenge(itemId, { from: challenger })
           this.challengeAddress = await this.registry.challenges(itemId)
+          this.challenge = await Challenge.at(this.challengeAddress)
         })
 
         it('should transfer stake from the challenger', async function () {
           expect(await this.token.balanceOf(challenger)).to.be.bignumber.equal(initialBalance - minStake)
         })
 
-        it('should transfer owner and challenger stake to the challenge', async function () {
-          expect(await this.token.balanceOf(this.challengeAddress)).to.be.bignumber.equal(minStake * 2)
-        })
-
-        it('should transfer owner stake from the registry', async function () {
-          expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(0)
+        it('should approve challenge.fundsRequired() to the challenge ', async function () {
+          expect(await this.token.allowance(this.registry.address, this.challengeAddress)).to.be.bignumber.equal(await this.challenge.fundsRequired())
         })
 
         it('should create challenge with correct params', async function () {
@@ -132,6 +129,14 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         })
       })
 
+      describe('when challenge.fundsRequired() is greater than the challenge stake', function () {
+        it('reverts', async function () {
+          await this.registry.add(itemData)
+          await this.challengeFactory.mock_set_fundsRequired(minStake * 1.5)
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await shouldFail.reverting(this.registry.challenge(itemId, { from: challenger }))
+        })
+      })
     })
 
     describe('resolveChallenge()', function () {
@@ -141,7 +146,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           await this.token.approve(this.registry.address, minStake, { from: challenger })
           await this.registry.challenge(itemId, { from: challenger })
           this.challenge = await Challenge.at(await this.registry.challenges(itemId))
-          await this.challenge.approveRewardTransfer(this.token.address, this.registry.address)
         })
 
         describe('when challenge has passed', function () {
@@ -172,17 +176,12 @@ function shouldBehaveLikeTokenCuratedRegistry ({
 
           shouldCloseChallenge()
           shouldDeleteChallenge()
-          shouldTransferRewardFromChallenge()
         })
 
         describe('when challenge has failed', function () {
           beforeEach(async function () {
             await this.challenge.set_mock_passed(false)
             await this.registry.resolveChallenge(itemId, { from: rando })
-          })
-
-          it('transfers the reward to the registry', async function () {
-            expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(mockChallengeReward)
           })
 
           it('adds the reward to the item owner\'s stake', async function () {
@@ -203,7 +202,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
 
           shouldCloseChallenge()
           shouldDeleteChallenge()
-          shouldTransferRewardFromChallenge()
         })
 
         function shouldCloseChallenge () {
@@ -215,12 +213,6 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         function shouldDeleteChallenge () {
           it('deletes the challenge from the registry', async function () {
             expect(await this.registry.challenges(itemId)).to.equal(ZERO_ADDRESS)
-          })
-        }
-
-        function shouldTransferRewardFromChallenge () {
-          it('transfers reward from the challenge', async function () {
-            expect(await this.token.balanceOf(this.challenge.address)).to.be.bignumber.equal(minStake * 2 - mockChallengeReward)
           })
         }
       })
@@ -259,7 +251,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         beforeEach(async function () {
           await this.registry.add(itemData)
         })
-        
+
         describe('and challenge exists', function () {
           it('returns true', async function () {
             await this.token.approve(this.registry.address, minStake, { from: challenger })
@@ -267,7 +259,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
             expect(await this.registry.challengeExists(itemId)).to.be.true
           })
         })
-        
+
         describe('and challenge does not exist', function () {
           it('returns false', async function () {
             expect(await this.registry.challengeExists(itemId)).to.be.false

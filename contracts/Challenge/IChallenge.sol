@@ -1,6 +1,9 @@
 pragma solidity ^0.4.24;
 
 interface IChallenge {
+  // returns the address of the challenger
+  function challenger() view returns (address);
+
   // returns true if the challenge has ended
   function close() public;
 
@@ -8,10 +11,10 @@ interface IChallenge {
   // reverts if challenge has not been closed
   function passed() public view returns (bool);
 
-  // returns the amount of tokens to transfer back to the registry contract
-  // after the challenge has ended, to be distributed as a reward for applicant/challenger
-  function reward() public view returns (uint rewardAmount);
+  // @notice returns the amount of tokens the challenge must
+  // obtain to carry out functionality
+  function fundsRequired() public view returns (uint);
 
-  // returns the address of the challenger
-  function challenger() view returns (address);
+  // @dev returns amount to be rewarded to challenge winner
+  function winnerReward() public view returns (uint);
 }

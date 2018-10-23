@@ -56,9 +56,9 @@ contract('PLCRVotingChallenge', (accounts) => {
       expect((await challenge.pollID()).toNumber()).to.equal(1)
     })
 
-    it('sets the correct rewardPool', async () => {
-      const rewardPool = PERCENT_VOTER_REWARD * CHALLENGER_STAKE / 100
-      expect((await challenge.rewardPool()).toNumber()).to.equal(rewardPool)
+    it('sets the correct voterRewardPool', async () => {
+      const voterRewardPool = PERCENT_VOTER_REWARD * CHALLENGER_STAKE / 100
+      expect((await challenge.voterRewardPool()).toNumber()).to.equal(voterRewardPool)
     })
   })
 
@@ -78,14 +78,6 @@ contract('PLCRVotingChallenge', (accounts) => {
         expect(await challenge.isClosed()).to.equal(false)
         await challenge.close()
         expect(await challenge.isClosed()).to.equal(true)
-      })
-
-      it('approves rewardAmount of tokens back to the registry', async () => {
-        const previousAllowance = (await token.allowance(challenge.address, registry.address)).toNumber()
-        await challenge.close()
-        const reward = (await challenge.reward()).toNumber()
-        const newAllowance = (await token.allowance(challenge.address, registry.address)).toNumber()
-        expect(newAllowance).to.equal(previousAllowance + reward)
       })
 
       it('emits a ChallengeClosed event', async () => {
@@ -130,26 +122,34 @@ contract('PLCRVotingChallenge', (accounts) => {
     })
   })
 
-  describe('reward()', async () => {
+  describe('fundsRequired()', async () => {
+    it('returns voterRewardPool', async () => {
+      let fundsRequired = (await challenge.fundsRequired()).toNumber()
+      let voterRewardPool = (await challenge.voterRewardPool()).toNumber()
+      expect(fundsRequired).to.equal(voterRewardPool)
+    })
+  })
+
+  describe('winnerReward()', async () => {
     beforeEach(async () => {
       await plcrVoting.set_mock_pollEnded(true)
     })
 
     it('reverts if challenge is not officially closed', async () => {
-      await shouldFail.reverting(challenge.reward())
+      await shouldFail.reverting(challenge.winnerReward())
     })
 
     it('returns challengerStake x 2 if no one voted', async () => {
       await challenge.close()
       await plcrVoting.set_mock_getTotalNumberOfTokensForWinningOption(0)
-      expect((await challenge.reward()).toNumber()).to.equal(CHALLENGER_STAKE * 2)
+      expect((await challenge.winnerReward()).toNumber()).to.equal(CHALLENGER_STAKE * 2)
     })
 
-    it('returns challengerStake x 2 minus the rewardPool if there were voters', async () => {
-      const rewardPool = (await challenge.rewardPool()).toNumber()
+    it('returns challengerStake x 2 minus the voterRewardPool if there were voters', async () => {
+      const voterRewardPool = (await challenge.voterRewardPool()).toNumber()
       await plcrVoting.set_mock_getTotalNumberOfTokensForWinningOption(5)
       await challenge.close()
-      expect((await challenge.reward()).toNumber()).to.equal(CHALLENGER_STAKE * 2 - rewardPool)
+      expect((await challenge.winnerReward()).toNumber()).to.equal(CHALLENGER_STAKE * 2 - voterRewardPool)
     })
   })
 
@@ -221,12 +221,12 @@ contract('PLCRVotingChallenge', (accounts) => {
   })
 
   describe('voterReward()', async () => {
-    let voter, voterTokenAmount, winningTokenAmount, rewardPool, voterRewardsClaimed, voterTokensClaimed
+    let voter, voterTokenAmount, winningTokenAmount, voterRewardPool, voterRewardsClaimed, voterTokensClaimed
     beforeEach(async () => {
       voter = accounts[0]
       voterTokenAmount = 10
       winningTokenAmount = 20
-      rewardPool = (await challenge.rewardPool()).toNumber()
+      voterRewardPool = (await challenge.voterRewardPool()).toNumber()
       voterRewardsClaimed = (await challenge.voterRewardsClaimed()).toNumber()
       voterTokensClaimed = (await challenge.voterTokensClaimed()).toNumber()
       await plcrVoting.set_mock_pollEnded(true)
@@ -235,7 +235,7 @@ contract('PLCRVotingChallenge', (accounts) => {
     })
 
     it('returns the correct reward amount', async () => {
-      const correctAmount = (voterTokenAmount * (rewardPool - voterRewardsClaimed)) / (winningTokenAmount - voterTokensClaimed)
+      const correctAmount = (voterTokenAmount * (voterRewardPool - voterRewardsClaimed)) / (winningTokenAmount - voterTokensClaimed)
       await challenge.close()
       expect((await challenge.voterReward(voter, 123)).toNumber()).to.equal(correctAmount)
     })
@@ -266,8 +266,9 @@ contract('PLCRVotingChallenge', (accounts) => {
       voteQuorum,
       percentVoterReward
     )
-    await token.mint(challenge.address, CHALLENGER_STAKE * 2)
 
+    await token.mint(registry.address, 100 * 10 ** 18)
+    await registry.mock_approveTokenToChallenge(challenge.address, 1000 * 18 ** 18)
     return challenge
   }
 })

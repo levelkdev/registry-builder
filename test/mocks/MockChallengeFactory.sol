@@ -9,9 +9,11 @@ contract MockChallengeFactory is IChallengeFactory {
   address public challenger;
   address public itemOwner;
   uint public reward;
+  uint public fundsRequired;
 
-  constructor (uint _reward) public {
+  constructor (uint _reward, uint _fundsRequired) public {
     reward = _reward;
+    fundsRequired = _fundsRequired;
   }
 
   function createChallenge(address _registry, address _challenger, address _itemOwner) returns (address challenge) {
@@ -20,8 +22,12 @@ contract MockChallengeFactory is IChallengeFactory {
     itemOwner = _itemOwner;
     MockChallenge mockChallenge = new MockChallenge();
     mockChallenge.set_mock_challenger(_challenger);
-    mockChallenge.set_mock_reward(reward);
+    mockChallenge.set_mock_winnerReward(reward);
+    mockChallenge.set_mock_fundsRequired(fundsRequired);
     return address(mockChallenge);
   }
 
+  function mock_set_fundsRequired(uint _val) public {
+    fundsRequired = _val;
+  }
 }

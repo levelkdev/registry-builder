@@ -11,7 +11,7 @@ contract StakedRegistry is OwnedItemRegistry {
   using SafeMath for uint;
 
   ERC20 public token;
-  uint minStake;      // minimum required amount of tokens to add an item
+  uint public minStake;      // minimum required amount of tokens to add an item
 
   mapping(bytes32 => uint) public ownerStakes;
 
