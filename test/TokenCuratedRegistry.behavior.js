@@ -94,7 +94,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           expect(await this.token.balanceOf(challenger)).to.be.bignumber.equal(initialBalance - minStake)
         })
 
-        it('should approve challenge.requiredFunds() to the challenge ', async function () {
+        it('should approve challenge.fundsRequired() to the challenge ', async function () {
           expect(await this.token.allowance(this.registry.address, this.challengeAddress)).to.be.bignumber.equal(await this.challenge.fundsRequired())
         })
 
@@ -129,6 +129,14 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         })
       })
 
+      describe('when challenge.fundsRequired() is greater than the challenge stake', function () {
+        it('reverts', async function () {
+          await this.registry.add(itemData)
+          await this.challengeFactory.mock_set_fundsRequired(minStake * 1.5)
+          await this.token.approve(this.registry.address, minStake, { from: challenger })
+          await shouldFail.reverting(this.registry.challenge(itemId, { from: challenger }))
+        })
+      })
     })
 
     describe('resolveChallenge()', function () {

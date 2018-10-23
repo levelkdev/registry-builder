@@ -46,7 +46,10 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     require(!challengeExists(id));
     require(token.transferFrom(msg.sender, this, minStake));
     challenges[id] = IChallenge(challengeFactory.createChallenge(this, msg.sender, owners[id]));
-    require(token.approve(challenges[id], challenges[id].fundsRequired()));
+
+    uint challengeFunds = challenges[id].fundsRequired();
+    require(challengeFunds <= minStake);
+    require(token.approve(challenges[id], challengeFunds));
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
