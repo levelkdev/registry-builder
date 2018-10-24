@@ -55,26 +55,9 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           await this.registry.setChallenge(itemId, this.challenge.address)
         })
 
-        describe('and the challenge has failed', function () {
-          beforeEach(async function () {
-            await this.challenge.set_mock_passed(false)
-            await this.registry.remove(itemId)
-          })
-
-          it('removes the item', async function () {
-            expect(await this.registry.get(itemId)).to.equal(ZERO_BYTES32)
-          })
-
-          it('deletes the challenge from the challenges mapping', async function () {
-            expect(await this.registry.challenges(itemId)).to.equal(ZERO_ADDRESS)
-          })
-        })
-
-        describe('and the challenge has passed', function () {
-          it('reverts', async function () {
-            await this.challenge.set_mock_passed(true)
-            await shouldFail.reverting(this.registry.remove(itemId))
-          })
+        it('reverts', async function () {
+          await this.challenge.set_mock_passed(true)
+          await shouldFail.reverting(this.registry.remove(itemId))
         })
       })
     })

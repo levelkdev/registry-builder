@@ -10,6 +10,10 @@ import 'openzeppelin-zos/contracts/token/ERC20/ERC20.sol';
 contract StakedRegistry is OwnedItemRegistry {
   using SafeMath for uint;
 
+  event NewStake(bytes32 indexed itemID, uint totalStake);
+  event IncreasedStake(bytes32 indexed itemID, uint totalStake, uint increaseAmount);
+  event DecreasedStake(bytes32 indexed itemID, uint totalStake, uint decreaseAmount);
+
   ERC20 public token;
   uint public minStake;      // minimum required amount of tokens to add an item
 
@@ -25,6 +29,7 @@ contract StakedRegistry is OwnedItemRegistry {
     require(token.transferFrom(msg.sender, this, minStake));
     id = super.add(data);
     ownerStakes[id] = minStake;
+    emit NewStake(id, ownerStakes[id]);
   }
 
   function remove(bytes32 id) public {
@@ -36,12 +41,14 @@ contract StakedRegistry is OwnedItemRegistry {
   function increaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
     require(token.transferFrom(msg.sender, this, stakeAmount));
     ownerStakes[id] = ownerStakes[id].add(stakeAmount);
+    emit IncreasedStake(id, ownerStakes[id], stakeAmount);
   }
 
   function decreaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
     require(ownerStakes[id].sub(stakeAmount) > minStake);
     require(token.transfer(msg.sender, stakeAmount));
     ownerStakes[id] = ownerStakes[id].sub(stakeAmount);
+    emit DecreasedStake(id, ownerStakes[id], stakeAmount);
   }
 
 }
