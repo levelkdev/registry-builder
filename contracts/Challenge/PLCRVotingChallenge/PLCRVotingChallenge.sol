@@ -27,9 +27,10 @@ contract PLCRVotingChallenge is IChallenge {
   PLCRVoting public voting;              // address of PLCRVoting Contract
   uint public pollID;                    // poll ID for PLCRVoting contract
   uint public voterRewardPool;           // pool of tokens to be distributed to winning voters
-  bool public isClosed;                  // signifies whether challenge has been closed
   uint public voterTokensClaimed;        // total amount of winning tokens voters have received rewards for thus far
   uint public voterRewardsClaimed;       // total amount of rewards distributed to voters thus far
+
+  bool _isClosed;                        // signifies whether challenge has been closed
 
   mapping(address => bool) public tokenClaims;   // Indicates whether a voter has claimed their reward yet
 
@@ -68,10 +69,14 @@ contract PLCRVotingChallenge is IChallenge {
   // @dev Closes challenge if PLCRVoting poll has ended and challenge
   //      is not yet closed
   function close() public {
-    require(voting.pollEnded(pollID) && !isClosed);
-    isClosed = true;
+    require(voting.pollEnded(pollID) && !isClosed());
+    _isClosed = true;
 
     emit ChallengeClosed();
+  }
+
+  function isClosed() public view returns (bool) {
+    return _isClosed;
   }
 
   // @notice Determines if the challenge has passed
@@ -80,7 +85,7 @@ contract PLCRVotingChallenge is IChallenge {
   //      returns false if PLCR voting has not passed
   //      reverts if challenge has not been closed.
   function passed() public view returns (bool) {
-      require(isClosed);
+      require(isClosed());
 
       // if voters do not vote in favor of item, challenge passes
       return !voting.isPassed(pollID);
@@ -96,7 +101,7 @@ contract PLCRVotingChallenge is IChallenge {
 
   // @dev   returns the total reward amount to be distributed to challenge winner
   function winnerReward() public view returns (uint) {
-    require(isClosed);
+    require(isClosed());
     if (voting.getTotalNumberOfTokensForWinningOption(pollID) == 0) {
       return challengerStake.mul(2);
     } else {
@@ -107,7 +112,7 @@ contract PLCRVotingChallenge is IChallenge {
   // @dev           Called by a voter to claim their reward for each completed vote
   // @param _salt   The salt of a voter's commit hash
   function claimVoterReward(uint _salt) public {
-    require(isClosed);
+    require(isClosed());
     require(tokenClaims[msg.sender] == false); // Ensures the voter has not already claimed tokens
 
     uint voterTokens = voting.getNumPassingTokens(msg.sender, pollID);

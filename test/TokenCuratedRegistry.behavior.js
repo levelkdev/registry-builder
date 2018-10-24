@@ -140,12 +140,33 @@ function shouldBehaveLikeTokenCuratedRegistry ({
     })
 
     describe('resolveChallenge()', function () {
+      describe('when challenge does not exist', async () => {
+        it('reverts', async function ()  {
+          await this.registry.add(itemData)
+          await shouldFail.reverting(this.registry.resolveChallenge(itemId, { from: rando }))
+        })
+      })
+
       describe('when challenge exists', function () {
         beforeEach(async function () {
           await this.registry.add(itemData)
           await this.token.approve(this.registry.address, minStake, { from: challenger })
           await this.registry.challenge(itemId, { from: challenger })
           this.challenge = await Challenge.at(await this.registry.challenges(itemId))
+        })
+
+        describe('and challenge is not yet closed', async function () {
+          it('closes the challenge', async function () {
+            expect(await this.challenge.isClosed()).to.be.false
+            await this.registry.resolveChallenge(itemId)
+            expect(await this.challenge.isClosed()).to.be.true
+          })
+
+          shouldCarryOutResolution()
+        })
+
+        describe('and challenge is already closed', async function () {
+          shouldCarryOutResolution()
         })
 
         describe('when challenge has passed', function () {
@@ -203,6 +224,20 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           shouldCloseChallenge()
           shouldDeleteChallenge()
         })
+
+        function shouldCarryOutResolution() {
+          it('carries out the resolution', async function () {
+            const winnerReward = await this.challenge.winnerReward()
+            const previousItemStake = await this.registry.ownerStakes(itemId)
+            await this.challenge.set_mock_passed(false)
+            await this.registry.resolveChallenge(itemId)
+            const currentItemStake = await this.registry.ownerStakes(itemId)
+
+            expect(previousItemStake).to.be.bignumber.equal(minStake)
+            expect(currentItemStake).to.be.bignumber.equal(winnerReward)
+            expect(await this.registry.challenges(itemId)).to.equal(ZERO_ADDRESS)
+          })
+        }
 
         function shouldCloseChallenge () {
           it('closes the challenge', async function () {
