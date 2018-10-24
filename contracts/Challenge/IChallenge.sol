@@ -7,6 +7,9 @@ interface IChallenge {
   // returns true if the challenge has ended
   function close() public;
 
+  // returns whether challenge has been officially closed
+  function isClosed() public view returns (bool);
+
   // returns true if the challenge has passed
   // reverts if challenge has not been closed
   function passed() public view returns (bool);

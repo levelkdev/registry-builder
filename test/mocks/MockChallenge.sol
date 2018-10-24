@@ -5,7 +5,7 @@ import '../../contracts/Challenge/IChallenge.sol';
 
 contract MockChallenge is IChallenge {
 
-  bool public isClosed;
+  bool mock_isClosed;
 
   bool mock_passed;
   uint mock_winnerReward;
@@ -29,7 +29,11 @@ contract MockChallenge is IChallenge {
   }
 
   function close() public {
-    isClosed = true;
+    mock_isClosed = true;
+  }
+
+  function isClosed() public view returns (bool) {
+    return mock_isClosed;
   }
 
   function passed() public view returns (bool) {
