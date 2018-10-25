@@ -6,6 +6,13 @@ import '../Challenge/IChallengeFactory.sol';
 import '../Challenge/IChallenge.sol';
 
 contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
+
+  event Application(bytes32 indexed itemID, address indexed itemOwner, uint applicationEndDate);
+  event ItemRejected(bytes32 indexed itemID);
+  event ChallengeSucceeded(bytes32 indexed itemID, address challenge);
+  event ChallengeFailed(bytes32 indexed itemID, address challenge);
+  event ChallengeInitiated(bytes32 indexed itemID, address challenge, address challenger);
+
   uint applicationPeriod;
   IChallengeFactory public challengeFactory;
   mapping(bytes32 => IChallenge) public challenges;
@@ -23,6 +30,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   function add(bytes32 data) public returns (bytes32 id) {
     id = super.add(data);
     unlockTimes[id] = now.add(applicationPeriod);
+    emit Application(id, msg.sender, unlockTimes[id]);
   }
 
   // Removes an item from the `items` mapping, and deletes challenge state. Requires that
@@ -30,10 +38,7 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // requires that this is called by the item owner. TimelockableItemRegistry.remove requires
   // that the item is not locked.
   function remove(bytes32 id) public {
-    if (challengeExists(id)) {
-      require(!challenges[id].passed());
-    }
-    delete challenges[id];
+    require(!challengeExists(id));
     super.remove(id);
   }
 
@@ -50,6 +55,8 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     uint challengeFunds = challenges[id].fundsRequired();
     require(challengeFunds <= minStake);
     require(token.approve(challenges[id], challengeFunds));
+
+    emit ChallengeInitiated(id, challenges[id], msg.sender);
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
@@ -64,10 +71,12 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
       // if the challenge passed, reward the challenger (via token.transfer), then remove
       // the item and all state related to it
       require(token.transfer(challenges[id].challenger(), reward));
+      emit ChallengeSucceeded(id, challenges[id]);
       _reject(id);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
       ownerStakes[id] = ownerStakes[id].add(reward).sub(minStake);
+      emit ChallengeFailed(id, challenges[id]);
       delete unlockTimes[id];
       delete challenges[id];
     }
@@ -97,5 +106,6 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
     delete unlockTimes[id];
     delete challenges[id];
     _remove(id);
+    emit ItemRejected(id);
   }
 }
