@@ -98,8 +98,12 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // does not exist for the given item data.
   // Reverts if the item data does not exist.
   function challengeExists(bytes32 data) public view returns (bool) {
-    require(exists(data));
+    require(_exists(data));
     return address(challenges[data]) != 0x0;
+  }
+
+  function exists(bytes32 data) public view returns (bool) {
+    return _exists(data) && !_isLocked(data);
   }
 
   // Removes an item and all state related to the item

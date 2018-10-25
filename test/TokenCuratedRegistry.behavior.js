@@ -67,6 +67,15 @@ function shouldBehaveLikeTokenCuratedRegistry ({
       })
     })
 
+    describe('exists()', function () {
+      describe('when item is in application phase', function () {
+        it('returns false', async function () {
+          await this.registry.add(itemData)
+          expect(await this.registry.exists(itemData)).to.be.false
+        })
+      })
+    })
+
     describe('challenge()', function () {
 
       describe('when listing item exists, there is no existing challenge for the listing, and token transfer succeeds', function () {

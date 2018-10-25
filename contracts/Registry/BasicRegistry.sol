@@ -24,7 +24,7 @@ contract BasicRegistry is IRegistry {
     // @dev Adds an item to the registry.
     // @param data The item to add to the registry
     function add(bytes32 data) public {
-        require(!exists(data));
+        require(!_exists(data));
         items[data] = true;
         ItemAdded(data);
     }
@@ -32,13 +32,17 @@ contract BasicRegistry is IRegistry {
     // @dev Removes an item from the registry. Reverts if the item does not exist.
     // @param data The item data to remove
     function remove(bytes32 data) public {
-        require(exists(data));
+        require(_exists(data));
         _remove(data);
     }
 
     //  @dev Returns true if the given item data exists in the registry
     //  @param data The item data to check
     function exists(bytes32 data) public view returns (bool) {
+        return _exists(data);
+    }
+
+    function _exists(bytes32 data) internal view returns (bool) {
         return items[data];
     }
 

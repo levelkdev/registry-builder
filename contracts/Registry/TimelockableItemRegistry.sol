@@ -14,7 +14,11 @@ contract TimelockableItemRegistry is BasicRegistry {
   }
 
   function isLocked(bytes32 data) public view returns (bool) {
-    require(exists(data));
+    require(_exists(data));
+    return _isLocked(data);
+  }
+
+  function _isLocked(bytes32 data) internal view returns (bool) {
     return unlockTimes[data] > now;
   }
 }
