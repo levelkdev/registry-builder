@@ -1,4 +1,4 @@
-const { shouldFail } = require('lk-test-helpers')(web3)
+const { shouldFail, expectEvent } = require('lk-test-helpers')(web3)
 const parseListingTitle = require('./helpers/parseListingTitle')
 const chai = require('chai')
 const { expect } = chai.use(require('chai-bignumber')(web3.BigNumber))
@@ -12,7 +12,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
     describe('add()', function () {
       describe('when token transfer from sender succeeds', function () {
         beforeEach(async function () {
-          await this.registry.add(itemData, { from: owner })
+          this.logs = (await this.registry.add(itemData, { from: owner })).logs
         })
 
         it('transfers stake from the owner', async function () {
@@ -21,6 +21,10 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
         it('transfers stake to the registry', async function () {
           expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(minStake)
+        })
+
+        it('emits a NewStake event', async function () {
+          await expectEvent.inLogs(this.logs, 'NewStake')
         })
       })
 
@@ -80,15 +84,19 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
         describe('and token transfer is successful', function () {
           beforeEach(async function () {
             await this.token.approve(this.registry.address, this.additionalStake, { from: owner })
-            await this.registry.increaseStake(itemId, this.additionalStake, { from: owner })
+            this.logs = (await this.registry.increaseStake(itemId, this.additionalStake, { from: owner })).logs
           })
 
           it('transfers additional stake amount from the sender', async function () {
             expect(await this.token.balanceOf(owner)).to.be.bignumber.equal(this.expectedOwnerBalance)
           })
-          
+
           it('transfers additional stake amount to the registry', async function () {
             expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(this.totalStake)
+          })
+
+          it('emits an IncreasedStake event', async function () {
+            await expectEvent.inLogs(this.logs, 'IncreasedStake')
           })
         })
 
@@ -123,7 +131,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
       describe('when executed by item owner', function () {
         describe('and decreased to a balance that would exceed the minimum stake', function () {
           beforeEach(async function () {
-            await this.registry.decreaseStake(itemId, this.decreaseAmount, { from: owner })
+            this.logs = (await this.registry.decreaseStake(itemId, this.decreaseAmount, { from: owner })).logs
           })
 
           it('transfers stake to the owner', async function () {
@@ -132,6 +140,10 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
           it('transfers stake from the registry', async function () {
             expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(this.totalStake)
+          })
+
+          it('emits an DecreasedStake event', async function () {
+            await expectEvent.inLogs(this.logs, 'DecreasedStake')
           })
         })
 

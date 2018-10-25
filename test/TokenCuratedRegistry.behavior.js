@@ -1,5 +1,6 @@
 const {
   shouldFail,
+  expectEvent,
   increaseTime,
   constants
 } = require('lk-test-helpers')(web3)
@@ -25,7 +26,11 @@ function shouldBehaveLikeTokenCuratedRegistry ({
 
     describe('add()', function () {
       beforeEach(async function () {
-        await this.registry.add(itemData)
+        this.logs = (await this.registry.add(itemData)).logs
+      })
+
+      it('emits an Application event', async function () {
+        await expectEvent.inLogs(this.logs, 'Application')
       })
 
       describe('before applicationPeriod expires', function () {
@@ -68,7 +73,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         beforeEach(async function () {
           await this.registry.add(itemData)
           await this.token.approve(this.registry.address, minStake, { from: challenger })
-          await this.registry.challenge(itemId, { from: challenger })
+          this.logs = (await this.registry.challenge(itemId, { from: challenger })).logs
           this.challengeAddress = await this.registry.challenges(itemId)
           this.challenge = await Challenge.at(this.challengeAddress)
         })
@@ -85,6 +90,10 @@ function shouldBehaveLikeTokenCuratedRegistry ({
           expect(await this.challengeFactory.registry()).to.equal(this.registry.address)
           expect(await this.challengeFactory.challenger()).to.equal(challenger)
           expect(await this.challengeFactory.itemOwner()).to.equal(owner)
+        })
+
+        it('emits a ChallengeInitiated event', async function () {
+          await expectEvent.inLogs(this.logs, 'ChallengeInitiated')
         })
       })
 
@@ -155,7 +164,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         describe('when challenge has passed', function () {
           beforeEach(async function () {
             await this.challenge.set_mock_passed(true)
-            await this.registry.resolveChallenge(itemId, { from: rando })
+            this.logs = (await this.registry.resolveChallenge(itemId, { from: rando })).logs
           })
 
           it('should transfer reward to the challenger', async function () {
@@ -178,6 +187,14 @@ function shouldBehaveLikeTokenCuratedRegistry ({
             expect(await this.registry.exists(itemId)).to.be.false
           })
 
+          it('emits a ChallengeSucceeded event', async function () {
+            await expectEvent.inLogs(this.logs, 'ChallengeSucceeded')
+          })
+
+          it('emits a ItemRejected event', async function () {
+            await expectEvent.inLogs(this.logs, 'ItemRejected')
+          })
+
           shouldCloseChallenge()
           shouldDeleteChallenge()
         })
@@ -185,7 +202,7 @@ function shouldBehaveLikeTokenCuratedRegistry ({
         describe('when challenge has failed', function () {
           beforeEach(async function () {
             await this.challenge.set_mock_passed(false)
-            await this.registry.resolveChallenge(itemId, { from: rando })
+            this.logs = (await this.registry.resolveChallenge(itemId, { from: rando })).logs
           })
 
           it('adds the reward to the item owner\'s stake', async function () {
@@ -202,6 +219,10 @@ function shouldBehaveLikeTokenCuratedRegistry ({
 
           it('unlocks the item', async function () {
             expect(await this.registry.isLocked(itemId)).to.be.false
+          })
+
+          it('emits a ChallengeFailed event', async function () {
+            await expectEvent.inLogs(this.logs, 'ChallengeFailed')
           })
 
           shouldCloseChallenge()
