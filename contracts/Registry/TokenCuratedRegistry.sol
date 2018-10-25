@@ -7,7 +7,7 @@ import '../Challenge/IChallenge.sol';
 
 contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
 
-  event Application(bytes32 indexed itemID, address indexed itemOwner, uint appEndDate);
+  event Application(bytes32 indexed itemID, address indexed itemOwner, uint applicationEndDate);
   event ItemRejected(bytes32 indexed itemID);
   event ChallengeSucceeded(bytes32 indexed itemID, address challenge);
   event ChallengeFailed(bytes32 indexed itemID, address challenge);
