@@ -95,8 +95,8 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
             expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(this.totalStake)
           })
 
-          it('emits an IncreasedStake event', async function () {
-            await expectEvent.inLogs(this.logs, 'IncreasedStake')
+          it('emits an StakeIncreased event', async function () {
+            await expectEvent.inLogs(this.logs, 'StakeIncreased')
           })
         })
 
@@ -142,8 +142,8 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
             expect(await this.token.balanceOf(this.registry.address)).to.be.bignumber.equal(this.totalStake)
           })
 
-          it('emits an DecreasedStake event', async function () {
-            await expectEvent.inLogs(this.logs, 'DecreasedStake')
+          it('emits an StakeDecreased event', async function () {
+            await expectEvent.inLogs(this.logs, 'StakeDecreased')
           })
         })
 
