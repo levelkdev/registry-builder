@@ -7,11 +7,11 @@ import '../Challenge/IChallenge.sol';
 
 contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
 
-  event Application(bytes32 indexed itemID, address indexed itemOwner, uint applicationEndDate);
-  event ItemRejected(bytes32 indexed itemID);
-  event ChallengeSucceeded(bytes32 indexed itemID, address challenge);
-  event ChallengeFailed(bytes32 indexed itemID, address challenge);
-  event ChallengeInitiated(bytes32 indexed itemID, address challenge, address challenger);
+  event Application(bytes32 indexed itemData, address indexed itemOwner, uint applicationEndDate);
+  event ItemRejected(bytes32 indexed itemData);
+  event ChallengeSucceeded(bytes32 indexed itemData, address challenge);
+  event ChallengeFailed(bytes32 indexed itemData, address challenge);
+  event ChallengeInitiated(bytes32 indexed itemData, address challenge, address challenger);
 
   uint applicationPeriod;
   IChallengeFactory public challengeFactory;
@@ -27,19 +27,19 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
 
   // Adds an item to the `items` mapping, transfers token stake from msg.sender, and locks
   // the item from removal until now + applicationPeriod.
-  function add(bytes32 data) public returns (bytes32 id) {
-    id = super.add(data);
-    unlockTimes[id] = now.add(applicationPeriod);
-    emit Application(id, msg.sender, unlockTimes[id]);
+  function add(bytes32 data) public {
+    super.add(data);
+    unlockTimes[data] = now.add(applicationPeriod);
+    emit Application(data, msg.sender, unlockTimes[data]);
   }
 
   // Removes an item from the `items` mapping, and deletes challenge state. Requires that
   // there is not an active or passed challenge for this item. OwnedItemRegistry.remove
   // requires that this is called by the item owner. TimelockableItemRegistry.remove requires
   // that the item is not locked.
-  function remove(bytes32 id) public {
-    require(!challengeExists(id));
-    super.remove(id);
+  function remove(bytes32 data) public {
+    require(!challengeExists(data));
+    super.remove(data);
   }
 
   // Creates a new challenge for an item.
@@ -47,38 +47,38 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // Requires msg.sender (the challenger) to match the owner's stake by transferring to
   // this contract. The challenger's and owner's stake is transferred to the newly created
   // challenge contract.
-  function challenge(bytes32 id) public {
-    require(!challengeExists(id));
+  function challenge(bytes32 data) public {
+    require(!challengeExists(data));
     require(token.transferFrom(msg.sender, this, minStake));
-    challenges[id] = IChallenge(challengeFactory.createChallenge(this, msg.sender, owners[id]));
+    challenges[data] = IChallenge(challengeFactory.createChallenge(this, msg.sender, owners[data]));
 
-    uint challengeFunds = challenges[id].fundsRequired();
+    uint challengeFunds = challenges[data].fundsRequired();
     require(challengeFunds <= minStake);
-    require(token.approve(challenges[id], challengeFunds));
+    require(token.approve(challenges[data], challengeFunds));
 
-    emit ChallengeInitiated(id, challenges[id], msg.sender);
+    emit ChallengeInitiated(data, challenges[data], msg.sender);
   }
 
   // Handles transfer of reward after a challenge has ended. Requires that there
   // is an ended challenge for the item.
-  function resolveChallenge(bytes32 id) public {
-    if(!challenges[id].isClosed()) {
-      challenges[id].close(); // reverts if challenge cannot be closed yet
+  function resolveChallenge(bytes32 data) public {
+    if(!challenges[data].isClosed()) {
+      challenges[data].close(); // reverts if challenge cannot be closed yet
     }
 
-    uint reward = challenges[id].winnerReward();
-    if (challenges[id].passed()) {
+    uint reward = challenges[data].winnerReward();
+    if (challenges[data].passed()) {
       // if the challenge passed, reward the challenger (via token.transfer), then remove
       // the item and all state related to it
-      require(token.transfer(challenges[id].challenger(), reward));
-      emit ChallengeSucceeded(id, challenges[id]);
-      _reject(id);
+      require(token.transfer(challenges[data].challenger(), reward));
+      emit ChallengeSucceeded(data, challenges[data]);
+      _reject(data);
     } else {
       // if the challenge failed, reward the applicant (by adding to their staked balance)
-      ownerStakes[id] = ownerStakes[id].add(reward).sub(minStake);
-      emit ChallengeFailed(id, challenges[id]);
-      delete unlockTimes[id];
-      delete challenges[id];
+      ownerStakes[data] = ownerStakes[data].add(reward).sub(minStake);
+      emit ChallengeFailed(data, challenges[data]);
+      delete unlockTimes[data];
+      delete challenges[data];
     }
   }
 
@@ -86,26 +86,26 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // locked items are in the application phase, because the unlock time is set to
   // now + applicationPeriod when items are added. Also, unlock time is set to 0 if an item
   // is challenged and the challenge fails.
-  // Reverts if the item id does not exist.
-  function inApplicationPhase(bytes32 id) public view returns (bool) {
-    return isLocked(id);
+  // Reverts if the item data does not exist.
+  function inApplicationPhase(bytes32 data) public view returns (bool) {
+    return isLocked(data);
   }
 
-  // Returns `true` if a challenge exists for the given item id, and `false` if a challenge
-  // does not exist for the given item id.
-  // Reverts if the item id does not exist.
-  function challengeExists(bytes32 id) public view returns (bool) {
-    require(exists(id));
-    return address(challenges[id]) != 0x0;
+  // Returns `true` if a challenge exists for the given item data, and `false` if a challenge
+  // does not exist for the given item data.
+  // Reverts if the item data does not exist.
+  function challengeExists(bytes32 data) public view returns (bool) {
+    require(exists(data));
+    return address(challenges[data]) != 0x0;
   }
 
   // Removes an item and all state related to the item
-  function _reject(bytes32 id) internal {
-    ownerStakes[id] = 0;
-    delete owners[id];
-    delete unlockTimes[id];
-    delete challenges[id];
-    _remove(id);
-    emit ItemRejected(id);
+  function _reject(bytes32 data) internal {
+    ownerStakes[data] = 0;
+    delete owners[data];
+    delete unlockTimes[data];
+    delete challenges[data];
+    _remove(data);
+    emit ItemRejected(data);
   }
 }
