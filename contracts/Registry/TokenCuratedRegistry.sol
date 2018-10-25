@@ -18,8 +18,9 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   mapping(bytes32 => IChallenge) public challenges;
 
   constructor(ERC20 _token, uint _minStake, uint _applicationPeriod, IChallengeFactory _challengeFactory)
-  StakedRegistry(_token, _minStake)
-  public {
+    StakedRegistry(_token, _minStake)
+    public
+  {
     require(address(_challengeFactory) != 0x0);
     applicationPeriod = _applicationPeriod;
     challengeFactory = _challengeFactory;
