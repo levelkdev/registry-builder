@@ -6,6 +6,7 @@
 
 This library aims to be a readable and modular library for registries and TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized registry contract.
 
+
 ## Setup
 Install node modules:
 ```
@@ -23,6 +24,8 @@ Run tests:
 $ npm run test
 ```
 
+
+## Contract Structure
 
 ### Registry Interface
 
