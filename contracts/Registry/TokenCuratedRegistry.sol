@@ -63,6 +63,8 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
   // Handles transfer of reward after a challenge has ended. Requires that there
   // is an ended challenge for the item.
   function resolveChallenge(bytes32 data) public {
+    require(challengeExists(data));
+
     if(!challenges[data].isClosed()) {
       challenges[data].close(); // reverts if challenge cannot be closed yet
     }
