@@ -32,7 +32,7 @@ contract PLCRVotingMock {
     mock_pollEnded = ended;
   }
 
-  function pollEnded(uint pollID) constant public returns (bool) {
+  function pollEnded(uint pollId) constant public returns (bool) {
     return mock_pollEnded;
   }
 
@@ -45,7 +45,7 @@ contract PLCRVotingMock {
     mock_isPassed = passed;
   }
 
-  function isPassed(uint pollID) public view returns (bool) {
+  function isPassed(uint pollId) public view returns (bool) {
     return mock_isPassed;
   }
 
@@ -58,7 +58,7 @@ contract PLCRVotingMock {
     mock_getTotalNumberOfTokensForWinningOption = winningTokenAmount;
   }
 
-  function getTotalNumberOfTokensForWinningOption(uint pollID) public returns (uint) {
+  function getTotalNumberOfTokensForWinningOption(uint pollId) public returns (uint) {
     return mock_getTotalNumberOfTokensForWinningOption;
   }
 
@@ -71,7 +71,7 @@ contract PLCRVotingMock {
     mock_getNumPassingTokens = numPassingTokens;
   }
 
-  function getNumPassingTokens(address voter, uint pollID) public returns (uint) {
+  function getNumPassingTokens(address voter, uint pollId) public returns (uint) {
     return mock_getNumPassingTokens;
   }
 

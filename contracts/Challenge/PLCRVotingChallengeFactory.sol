@@ -1,12 +1,13 @@
 pragma solidity ^0.4.24;
 
-import './PLCRVotingChallenge.sol';
-import '../IChallenge.sol';
-import '../IChallengeFactory.sol';
+import "./IChallengeFactory.sol";
+import "./PLCRVotingChallenge.sol";
 
+/**
+ * @title PLCRVotingChallengeFactory
+ * @dev A challenge factory for creating PLCRVotingChallenge contracts.
+ */
 contract PLCRVotingChallengeFactory is IChallengeFactory {
-
-  event PLCRVotingChallengeCreated(address challenge, address registry, address challenger);
 
   uint public challengerStake;
   address public plcrVoting;
@@ -14,6 +15,8 @@ contract PLCRVotingChallengeFactory is IChallengeFactory {
   uint public revealStageLength;
   uint public voteQuorum;
   uint public percentVoterReward;
+
+  event PLCRVotingChallengeCreated(address challenge, address registry, address challenger);
 
   constructor (
     uint _challengerStake,

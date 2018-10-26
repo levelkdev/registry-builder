@@ -1,27 +1,40 @@
 pragma solidity ^0.4.24;
 
-import './BasicRegistry.sol';
+import "./BasicRegistry.sol";
 
-// sets the msg.sender of the `add` transaction as the owner
-// of the added item. Only allows the owner of the item to
-// remove it.
+/**
+ * @title OwnedItemRegistry
+ * @dev A registry where items are only removable by an item owner.
+ */
 contract OwnedItemRegistry is BasicRegistry {
 
+  // maps item data to owner address.
+  mapping(bytes32 => address) public owners;
+
+  /**
+   * @dev Modifier to make function callable only by item owner.
+   * @param data The item to require ownership for.
+   */
   modifier onlyItemOwner(bytes32 data) {
     require(owners[data] == msg.sender);
     _;
   }
 
-  mapping(bytes32 => address) public owners;
-
+  /**
+   * @dev Overrides BasicRegistry.add(), sets msg.sender as item owner.
+   * @param data The item to add to the registry.
+   */
   function add(bytes32 data) public {
     super.add(data);
     owners[data] = msg.sender;
   }
 
+  /**
+   * @dev Overrides BasicRegistry.remove(), deletes item owner state.
+   * @param data The item to remove from the registry.
+   */
   function remove(bytes32 data) public onlyItemOwner(data) {
     delete owners[data];
     super.remove(data);
   }
-  
 }

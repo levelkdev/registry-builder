@@ -36,8 +36,8 @@ contract('PLCRVotingChallenge', (accounts) => {
       expect(await challenge.challenger()).to.equal(CHALLENGER)
     })
 
-    it('sets the listingOwner address', async () => {
-      expect(await challenge.listingOwner()).to.equal(LISTING_OWNER)
+    it('sets the itemOwner address', async () => {
+      expect(await challenge.itemOwner()).to.equal(LISTING_OWNER)
     })
 
     it('sets the challengerStake', async () => {
@@ -48,12 +48,12 @@ contract('PLCRVotingChallenge', (accounts) => {
       expect(await challenge.registry()).to.equal(registry.address)
     })
 
-    it('sets voting to the PLCRVoting address', async () => {
-      expect(await challenge.voting()).to.equal(plcrVoting.address)
+    it('sets plcrVoting to the PLCRVoting address', async () => {
+      expect(await challenge.plcrVoting()).to.equal(plcrVoting.address)
     })
 
-    it('sets the correct pollID', async () => {
-      expect((await challenge.pollID()).toNumber()).to.equal(1)
+    it('sets the correct pollId', async () => {
+      expect((await challenge.pollId()).toNumber()).to.equal(1)
     })
 
     it('sets the correct voterRewardPool', async () => {
@@ -245,7 +245,7 @@ contract('PLCRVotingChallenge', (accounts) => {
 
     const {
       challenger         = CHALLENGER,
-      listingOwner       = LISTING_OWNER,
+      itemOwner       = LISTING_OWNER,
       challengerStake    = CHALLENGER_STAKE,
       registryAddr       = registry.address,
       plcrVotingAddr     = plcrVoting.address,
@@ -257,7 +257,7 @@ contract('PLCRVotingChallenge', (accounts) => {
 
     let challenge = await PLCRVotingChallenge.new(
       challenger,
-      listingOwner,
+      itemOwner,
       challengerStake,
       registryAddr,
       plcrVotingAddr,
