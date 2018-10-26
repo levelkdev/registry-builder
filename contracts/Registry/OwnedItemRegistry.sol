@@ -1,12 +1,13 @@
 pragma solidity ^0.4.24;
 
+import "zos-lib/contracts/Initializable.sol";
 import "./BasicRegistry.sol";
 
 /**
  * @title OwnedItemRegistry
  * @dev A registry where items are only removable by an item owner.
  */
-contract OwnedItemRegistry is BasicRegistry {
+contract OwnedItemRegistry is Initializable, BasicRegistry {
 
   // maps item data to owner address.
   mapping(bytes32 => address) public owners;

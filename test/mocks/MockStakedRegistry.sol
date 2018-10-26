@@ -4,7 +4,9 @@ import '../../contracts/Registry/StakedRegistry.sol';
 
 contract MockStakedRegistry is StakedRegistry {
 
-  constructor(ERC20 _token, uint _minStake) public StakedRegistry(_token, _minStake) { }
+  constructor(ERC20 _token, uint _minStake) public {
+    StakedRegistry.initialize(_token, _minStake);
+  }
 
   function setOwnerStake(bytes32 data, uint ownerStake) public {
     ownerStakes[data] = ownerStake;
