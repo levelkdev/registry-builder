@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+import "zos-lib/contracts/Initializable.sol";
 import "./IChallengeFactory.sol";
 import "./PLCRVotingChallenge.sol";
 
@@ -7,7 +8,7 @@ import "./PLCRVotingChallenge.sol";
  * @title PLCRVotingChallengeFactory
  * @dev A challenge factory for creating PLCRVotingChallenge contracts.
  */
-contract PLCRVotingChallengeFactory is IChallengeFactory {
+contract PLCRVotingChallengeFactory is Initializable, IChallengeFactory {
 
   uint public challengerStake;
   address public plcrVoting;
@@ -18,14 +19,17 @@ contract PLCRVotingChallengeFactory is IChallengeFactory {
 
   event PLCRVotingChallengeCreated(address challenge, address registry, address challenger);
 
-  constructor (
+  function initialize(
     uint _challengerStake,
     address _plcrVoting,
     uint _commitStageLength,
     uint _revealStageLength,
     uint _voteQuorum,
     uint _percentVoterReward
-  ) public {
+  )
+    initializer
+    public
+  {
     challengerStake = _challengerStake;
     plcrVoting = _plcrVoting;
     commitStageLength = _commitStageLength;

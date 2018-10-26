@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+import "zos-lib/contracts/Initializable.sol";
 import "./TimelockableItemRegistry.sol";
 import "./StakedRegistry.sol";
 import "../Challenge/IChallengeFactory.sol";
@@ -10,7 +11,7 @@ import "../Challenge/IChallenge.sol";
  * @dev A registry with tokenized goverence of item addition and removal.
  * Based on https://github.com/skmgoldin/tcr
  */
-contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
+contract TokenCuratedRegistry is Initializable, StakedRegistry, TimelockableItemRegistry {
 
   // amount of time to lock new items in the application phase.
   uint public applicationPeriod;
@@ -31,13 +32,19 @@ contract TokenCuratedRegistry is StakedRegistry, TimelockableItemRegistry {
 
   event ChallengeInitiated(bytes32 indexed itemData, address challenge, address challenger);
 
-  constructor(ERC20 _token, uint _minStake, uint _applicationPeriod, IChallengeFactory _challengeFactory)
-    StakedRegistry(_token, _minStake)
+  function initialize(
+    ERC20 _token,
+    uint _minStake,
+    uint _applicationPeriod,
+    IChallengeFactory _challengeFactory
+  )
+    initializer
     public
   {
     require(address(_challengeFactory) != 0x0);
     applicationPeriod = _applicationPeriod;
     challengeFactory = _challengeFactory;
+    StakedRegistry.initialize(_token, _minStake);
   }
 
   /**

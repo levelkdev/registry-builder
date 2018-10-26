@@ -1,0 +1,14 @@
+{
+  "zosversion": "2",
+  "name": "tcr-modular",
+  "publish": true,
+  "version": "0.1.0",
+  "contracts": {
+    "BasicRegistry": "BasicRegistry",
+    "OwnedItemRegistry": "OwnedItemRegistry",
+    "PLCRVotingChallengeFactory": "PLCRVotingChallengeFactory",
+    "StakedRegistry": "StakedRegistry",
+    "TimelockableItemRegistry": "TimelockableItemRegistry",
+    "TokenCuratedRegistry": "TokenCuratedRegistry"
+  }
+}

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-zos/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-zos/contracts/math/SafeMath.sol";
-import "plcr-revival/contracts/PLCRVoting.sol";
+import "openzeppelin-eth/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
+import "plcr-voting/contracts/PLCRVoting.sol";
 import "./IChallenge.sol";
 import "../Registry/TokenCuratedRegistry.sol";
 

@@ -1,18 +1,19 @@
 {
   "name": "tcr-modular",
+  "description": "Open Source Library for Modular TCR's",
   "version": "0.1.0",
   "license": "MIT",
-  "main": "lib/index.js",
   "files": [
     "build",
-    "lib",
-    "src"
+    "contracts",
+    "test",
+    "zos.json",
+    "zos.*.json"
   ],
   "dependencies": {
-    "moment": "^2.22.0",
-    "openzeppelin-zos": "^1.9.1",
-    "plcr-revival": "git://git@github.com:levelkdev/PLCRVoting#81a2590a9aec25122b8e8eb61c252cf5348553c0",
-    "truffle-hdwallet-provider": "^0.0.3"
+    "openzeppelin-eth": "^2.0.0",
+    "plcr-voting": "^0.1.2",
+    "zos-lib": "^2.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -28,9 +29,11 @@
     "dotenv": "6.1.0",
     "ganache-cli": "6.1.8",
     "lk-test-helpers": "0.1.7",
+    "moment": "^2.22.0",
     "snazzy": "^7.1.1",
     "standard": "^10.0.3",
     "truffle": "4.1.14",
+    "truffle-hdwallet-provider": "^0.0.6",
     "web3-utils": "1.0.0-beta.36"
   },
   "scripts": {

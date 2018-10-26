@@ -1,12 +1,13 @@
 pragma solidity ^0.4.24;
 
+import "zos-lib/contracts/Initializable.sol";
 import "./IRegistry.sol";
 
 /**
  * @title BasicRegistry
  * @dev A simple implementation of IRegistry, allows any address to add/remove items
  */
-contract BasicRegistry is IRegistry {
+contract BasicRegistry is Initializable, IRegistry {
 
     mapping(bytes32 => bool) items;
 

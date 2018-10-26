@@ -1,14 +1,15 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-zos/contracts/math/SafeMath.sol";
-import "openzeppelin-zos/contracts/token/ERC20/ERC20.sol";
+import "zos-lib/contracts/Initializable.sol";
+import "openzeppelin-eth/contracts/math/SafeMath.sol";
+import "openzeppelin-eth/contracts/token/ERC20/ERC20.sol";
 import "./OwnedItemRegistry.sol";
 
 /**
  * @title StakedRegistry
  * @dev A registry that lets owners stake tokens on items.
  */
-contract StakedRegistry is OwnedItemRegistry {
+contract StakedRegistry is Initializable, OwnedItemRegistry {
   using SafeMath for uint;
 
   // token used for item stake.
@@ -26,7 +27,7 @@ contract StakedRegistry is OwnedItemRegistry {
 
   event StakeDecreased(bytes32 indexed itemData, uint totalStake, uint decreaseAmount);
 
-  constructor(ERC20 _token, uint _minStake) public {
+  function initialize(ERC20 _token, uint _minStake) initializer public {
     require(address(_token) != 0x0);
     token = _token;
     minStake = _minStake;

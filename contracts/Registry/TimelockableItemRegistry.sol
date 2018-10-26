@@ -1,12 +1,13 @@
 pragma solidity ^0.4.24;
 
+import "zos-lib/contracts/Initializable.sol";
 import "./BasicRegistry.sol";
 
 /**
  * @title TimelockableItemRegistry
  * @dev A registry that allows items to be locked from removal.
  */
-contract TimelockableItemRegistry is BasicRegistry {
+contract TimelockableItemRegistry is Initializable, BasicRegistry {
 
   // maps item data to a time when the item will be unlocked.
   mapping(bytes32 => uint) public unlockTimes;

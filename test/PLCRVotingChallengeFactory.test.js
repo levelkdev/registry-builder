@@ -6,7 +6,7 @@ const RegistryMock = artifacts.require('RegistryMock.sol')
 const Token = artifacts.require('TestToken.sol')
 const PLCRVoting = artifacts.require('PLCRVotingMock.sol')
 const PLCRVotingChallenge = artifacts.require('PLCRVotingChallenge.sol')
-const PLCRVotingChallengeFactory = artifacts.require('PLCRVotingChallengeFactory.sol')
+const PLCRVotingChallengeFactory = artifacts.require('MockPLCRVotingChallengeFactory.sol')
 
 contract('PLCRVotingChallengeFactory', (accounts) => {
   let plcrVoting, plcrVotingChallengeFactory, token, registry, challenger, itemOwner
