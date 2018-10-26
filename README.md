@@ -24,6 +24,10 @@ Run tests:
 $ npm run test
 ```
 
+### Code Review
+* Notes on current state of this repository: https://docs.google.com/document/d/1vjaWW7izisc2QNlZEpti4BPh8yJTOGo3Wu9GNgaRI1A/
+* Feel free to create an Issue with review, questions, or concerns.
+
 
 ## Contract Structure
 
