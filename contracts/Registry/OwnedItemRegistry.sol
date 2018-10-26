@@ -7,21 +7,21 @@ import './BasicRegistry.sol';
 // remove it.
 contract OwnedItemRegistry is BasicRegistry {
 
-  modifier onlyItemOwner(bytes32 id) {
-    require(owners[id] == msg.sender);
+  modifier onlyItemOwner(bytes32 data) {
+    require(owners[data] == msg.sender);
     _;
   }
 
   mapping(bytes32 => address) public owners;
 
-  function add(bytes32 data) public returns (bytes32 id) {
-    id = super.add(data);
-    owners[id] = msg.sender;
+  function add(bytes32 data) public {
+    super.add(data);
+    owners[data] = msg.sender;
   }
 
-  function remove(bytes32 id) public onlyItemOwner(id) {
-    delete owners[id];
-    super.remove(id);
+  function remove(bytes32 data) public onlyItemOwner(data) {
+    delete owners[data];
+    super.remove(data);
   }
   
 }

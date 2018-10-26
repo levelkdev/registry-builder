@@ -3,7 +3,7 @@ const parseListingTitle = require('./helpers/parseListingTitle')
 const chai = require('chai')
 const { expect } = chai.use(require('chai-bignumber')(web3.BigNumber))
 
-const { data: itemData, hash: itemId } = parseListingTitle('listing 001')
+const itemData = parseListingTitle('listing 001')
 
 function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
   const [owner, owner2, rando] = accounts
@@ -42,7 +42,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
       describe('when token transfer succeeds', function () {
         beforeEach(async function () {
-          await this.registry.remove(itemId, { from: owner })
+          await this.registry.remove(itemData, { from: owner })
         })
 
         it('transfers stake to the owner', async function () {
@@ -56,8 +56,8 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
       describe('when owner stake is 0', function () {
         beforeEach(async function () {
-          await this.registry.setOwnerStake(itemId, 0)
-          await this.registry.remove(itemId, { from: owner })
+          await this.registry.setOwnerStake(itemData, 0)
+          await this.registry.remove(itemData, { from: owner })
         })
 
         it('transfers 0 stake to the owner', async function () {
@@ -84,7 +84,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
         describe('and token transfer is successful', function () {
           beforeEach(async function () {
             await this.token.approve(this.registry.address, this.additionalStake, { from: owner })
-            this.logs = (await this.registry.increaseStake(itemId, this.additionalStake, { from: owner })).logs
+            this.logs = (await this.registry.increaseStake(itemData, this.additionalStake, { from: owner })).logs
           })
 
           it('transfers additional stake amount from the sender', async function () {
@@ -102,7 +102,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
         describe('and token transfer fails', function () {
           it('reverts', async function () {
-            await shouldFail.reverting(this.registry.increaseStake(itemId, 1000, { from: owner }))
+            await shouldFail.reverting(this.registry.increaseStake(itemData, 1000, { from: owner }))
           })
         })
       })
@@ -110,7 +110,7 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
       describe('when not executed by item owner', function () {
         it('reverts', async function () {
           await this.token.approve(this.registry.address, this.additionalStake, { from: rando })
-          await shouldFail.reverting(this.registry.increaseStake(itemId, this.additionalStake, { from: rando }))
+          await shouldFail.reverting(this.registry.increaseStake(itemData, this.additionalStake, { from: rando }))
         })
       })
 
@@ -125,13 +125,13 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
         this.expectedOwnerBalance = initialBalance - this.totalStake
         await this.registry.add(itemData, { from: owner })
         await this.token.approve(this.registry.address, this.additionalStake, { from: owner })
-        await this.registry.increaseStake(itemId, this.additionalStake, { from: owner })
+        await this.registry.increaseStake(itemData, this.additionalStake, { from: owner })
       })
 
       describe('when executed by item owner', function () {
         describe('and decreased to a balance that would exceed the minimum stake', function () {
           beforeEach(async function () {
-            this.logs = (await this.registry.decreaseStake(itemId, this.decreaseAmount, { from: owner })).logs
+            this.logs = (await this.registry.decreaseStake(itemData, this.decreaseAmount, { from: owner })).logs
           })
 
           it('transfers stake to the owner', async function () {
@@ -149,14 +149,14 @@ function shouldBehaveLikeStakedRegistry (minStake, initialBalance, accounts) {
 
         describe('and decreased to a balance that would not exceed the minimum stake', function () {
           it('reverts', async function () {
-            await shouldFail.reverting(this.registry.decreaseStake(itemId, this.additionalStake + 1 * 10 ** 18, { from: owner }))
+            await shouldFail.reverting(this.registry.decreaseStake(itemData, this.additionalStake + 1 * 10 ** 18, { from: owner }))
           })
         })
       })
 
       describe('when not exected by item owner', function () {
         it('reverts', async function () {
-          await shouldFail.reverting(this.registry.decreaseStake(itemId, this.decreaseAmount, { from: rando }))
+          await shouldFail.reverting(this.registry.decreaseStake(itemData, this.decreaseAmount, { from: rando }))
         })
       })
     })

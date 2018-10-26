@@ -7,14 +7,18 @@ import './BasicRegistry.sol';
 contract TimelockableItemRegistry is BasicRegistry {
   mapping(bytes32 => uint) public unlockTimes;
 
-  function remove(bytes32 id) public {
-    require(!isLocked(id));
-    delete unlockTimes[id];
-    super.remove(id);
+  function remove(bytes32 data) public {
+    require(!isLocked(data));
+    delete unlockTimes[data];
+    super.remove(data);
   }
 
-  function isLocked(bytes32 id) public view returns (bool) {
-    require(exists(id));
-    return unlockTimes[id] > now;
+  function isLocked(bytes32 data) public view returns (bool) {
+    require(_exists(data));
+    return _isLocked(data);
+  }
+
+  function _isLocked(bytes32 data) internal view returns (bool) {
+    return unlockTimes[data] > now;
   }
 }
