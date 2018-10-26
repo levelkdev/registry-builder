@@ -1,53 +1,60 @@
 pragma solidity ^0.4.24;
 
-import './IRegistry.sol';
+import "./IRegistry.sol";
 
 /**
- * A generic registry app.
- * Inspired by Aragon Labs: https://github.com/aragonlabs/registry
- *
- * The registry has three simple operations: `add`, `remove` and `exists`.
- *
- * The registry itself is useless, but in combination with other apps to govern
- * the rules for who can add and remove entries in the registry, it becomes
- * a powerful building block (examples are token-curated registries and stake machines).
+ * @title BasicRegistry
+ * @dev A simple implementation of IRegistry, allows any address to add/remove items
  */
 contract BasicRegistry is IRegistry {
-    // The items in the registry.
+
     mapping(bytes32 => bool) items;
 
-    // Fired when an item is added to the registry.
     event ItemAdded(bytes32 data);
-    // Fired when an item is removed from the registry.
+
     event ItemRemoved(bytes32 data);
 
-    // @dev Adds an item to the registry.
-    // @param data The item to add to the registry
+    /**
+     * @dev Adds an item to the registry.
+     * @param data The item to add to the registry, must be unique.
+     */
     function add(bytes32 data) public {
         require(!_exists(data));
         items[data] = true;
         ItemAdded(data);
     }
 
-    // @dev Removes an item from the registry. Reverts if the item does not exist.
-    // @param data The item data to remove
+    /**
+     * @dev Removes an item from the registry, reverts if the item does not exist.
+     * @param data The item to remove from the registry.
+     */
     function remove(bytes32 data) public {
         require(_exists(data));
         _remove(data);
     }
 
-    //  @dev Returns true if the given item data exists in the registry
-    //  @param data The item data to check
+    /**
+     * @dev Checks if an item exists in the registry.
+     * @param data The item to check.
+     * @return A bool indicating whether the item exists.
+     */
     function exists(bytes32 data) public view returns (bool) {
         return _exists(data);
     }
 
+    /**
+     * @dev Internal function to check if an item exists in the registry.
+     * @param data The item to check.
+     * @return A bool indicating whether the item exists.
+     */
     function _exists(bytes32 data) internal view returns (bool) {
         return items[data];
     }
 
-    // @dev Internal function to remove an item from the registry.
-    // @param data The item data to remove
+    /**
+     * @dev Internal function to remove an item from the registry.
+     * @param data The item to remove from the registry.
+     */
     function _remove(bytes32 data) internal {
         items[data] = false;
         ItemRemoved(data);

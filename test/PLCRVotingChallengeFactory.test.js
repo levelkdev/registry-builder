@@ -73,9 +73,9 @@ contract('PLCRVotingChallengeFactory', (accounts) => {
       let challenge = PLCRVotingChallenge.at(challengeAddress)
       expect(await challenge.registry()).to.equal(registry.address)
       expect(await challenge.challenger()).to.equal(challenger)
-      expect(await challenge.listingOwner()).to.equal(itemOwner)
+      expect(await challenge.itemOwner()).to.equal(itemOwner)
       expect((await challenge.challengerStake()).toNumber()).to.equal(CHALLENGER_STAKE)
-      expect(await challenge.voting()).to.equal(plcrVoting.address)
+      expect(await challenge.plcrVoting()).to.equal(plcrVoting.address)
     })
 
     it('emits a PLCRVotingChallengeCreated event', async () => {
