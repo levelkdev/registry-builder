@@ -77,6 +77,3 @@ interface IChallenge {
   function winnerReward() public view returns (uint);
 }
 ```
-
-### Diagram
-![Modular TCR](https://user-images.githubusercontent.com/5539720/45768348-a5134b00-bc0a-11e8-85f1-d41e9b476883.jpg)
