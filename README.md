@@ -1,4 +1,4 @@
-# Modular TCR Library
+# TCR-Modular EVM Package
 
 #### *** DISCLAIMER: Current version contracts are not thoroughly tested or audited. Use at own risk ***
 
@@ -24,10 +24,10 @@ Run tests:
 $ npm run test
 ```
 
-### Code Review
-* Notes on current state of this repository: https://docs.google.com/document/d/1vjaWW7izisc2QNlZEpti4BPh8yJTOGo3Wu9GNgaRI1A/
-* Feel free to create an Issue with review, questions, or concerns.
+### Example Project
 
+Example project using tcr-modular EVM package to deploy a TCR:
+https://github.com/levelkdev/tcr-modular-example
 
 ## Contract Structure
 
@@ -77,3 +77,8 @@ interface IChallenge {
   function winnerReward() public view returns (uint);
 }
 ```
+
+
+## Code Review
+* Notes on current state of this repository: https://docs.google.com/document/d/1vjaWW7izisc2QNlZEpti4BPh8yJTOGo3Wu9GNgaRI1A/
+* Feel free to create an Issue with review, questions, or concerns.
