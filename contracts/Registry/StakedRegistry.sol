@@ -18,14 +18,14 @@ contract StakedRegistry is Initializable, OwnedItemRegistry {
   // minimum required amount of tokens to add an item.
   uint public minStake;
 
-  // maps item data to owner stake amount.
+  // maps item id to owner stake amount.
   mapping(bytes32 => uint) public ownerStakes;
 
-  event NewStake(bytes32 indexed itemData, uint totalStake);
+  event NewStake(bytes32 indexed itemid, uint totalStake);
 
-  event StakeIncreased(bytes32 indexed itemData, uint totalStake, uint increaseAmount);
+  event StakeIncreased(bytes32 indexed itemid, uint totalStake, uint increaseAmount);
 
-  event StakeDecreased(bytes32 indexed itemData, uint totalStake, uint decreaseAmount);
+  event StakeDecreased(bytes32 indexed itemid, uint totalStake, uint decreaseAmount);
 
   function initialize(ERC20 _token, uint _minStake) initializer public {
     require(address(_token) != 0x0);
@@ -35,45 +35,45 @@ contract StakedRegistry is Initializable, OwnedItemRegistry {
 
   /**
    * @dev Overrides OwnedItemRegistry.add(), transfers tokens from owner, sets stake.
-   * @param data The item to add to the registry.
+   * @param id The item to add to the registry.
    */
-  function add(bytes32 data) public {
+  function add(bytes32 id) public {
     require(token.transferFrom(msg.sender, this, minStake));
-    super.add(data);
-    ownerStakes[data] = minStake;
-    emit NewStake(data, ownerStakes[data]);
+    super.add(id);
+    ownerStakes[id] = minStake;
+    emit NewStake(id, ownerStakes[id]);
   }
 
   /**
    * @dev Overrides BasicRegistry.add(), tranfers tokens to owner, deletes stake.
-   * @param data The item to remove from the registry.
+   * @param id The item to remove from the registry.
    */
-  function remove(bytes32 data) public {
-    require(token.transfer(msg.sender, ownerStakes[data]));
-    delete ownerStakes[data];
-    super.remove(data);
+  function remove(bytes32 id) public {
+    require(token.transfer(msg.sender, ownerStakes[id]));
+    delete ownerStakes[id];
+    super.remove(id);
   }
 
   /**
    * @dev Increases stake for an item, only callable by item owner.
-   * @param data The item to increase stake for.
+   * @param id The item to increase stake for.
    * @param stakeAmount The amount of tokens to add to the current stake.
    */
-  function increaseStake(bytes32 data, uint stakeAmount) public onlyItemOwner(data) {
+  function increaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
     require(token.transferFrom(msg.sender, this, stakeAmount));
-    ownerStakes[data] = ownerStakes[data].add(stakeAmount);
-    emit StakeIncreased(data, ownerStakes[data], stakeAmount);
+    ownerStakes[id] = ownerStakes[id].add(stakeAmount);
+    emit StakeIncreased(id, ownerStakes[id], stakeAmount);
   }
 
   /**
    * @dev Decreases stake for an item, only callable by item owner.
-   * @param data The item to decrease stake for.
+   * @param id The item to decrease stake for.
    * @param stakeAmount The amount of tokens to remove from the current stake.
    */
-  function decreaseStake(bytes32 data, uint stakeAmount) public onlyItemOwner(data) {
-    require(ownerStakes[data].sub(stakeAmount) > minStake);
+  function decreaseStake(bytes32 id, uint stakeAmount) public onlyItemOwner(id) {
+    require(ownerStakes[id].sub(stakeAmount) > minStake);
     require(token.transfer(msg.sender, stakeAmount));
-    ownerStakes[data] = ownerStakes[data].sub(stakeAmount);
-    emit StakeDecreased(data, ownerStakes[data], stakeAmount);
+    ownerStakes[id] = ownerStakes[id].sub(stakeAmount);
+    emit StakeDecreased(id, ownerStakes[id], stakeAmount);
   }
 }

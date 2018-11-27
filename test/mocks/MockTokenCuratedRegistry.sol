@@ -8,16 +8,16 @@ contract MockTokenCuratedRegistry is TokenCuratedRegistry {
     TokenCuratedRegistry.initialize(_token, _minStake, _applicationPeriod, _challengeFactory);
   }
 
-  function setUnlockTime(bytes32 data, uint unlockTime) public {
-    unlockTimes[data] = unlockTime;
+  function setUnlockTime(bytes32 id, uint unlockTime) public {
+    unlockTimes[id] = unlockTime;
   }
 
-  function setOwnerStake(bytes32 data, uint ownerStake) public {
-    ownerStakes[data] = ownerStake;
+  function setOwnerStake(bytes32 id, uint ownerStake) public {
+    ownerStakes[id] = ownerStake;
   }
 
-  function setChallenge(bytes32 data, IChallenge challenge) public {
-    challenges[data] = challenge;
+  function setChallenge(bytes32 id, IChallenge challenge) public {
+    challenges[id] = challenge;
   }
 
 }

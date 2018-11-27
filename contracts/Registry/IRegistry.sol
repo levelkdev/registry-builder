@@ -5,7 +5,7 @@ pragma solidity ^0.4.24;
  * @dev An interface for registries.
  */
 interface IRegistry {
-  function add(bytes32 data) public;
-  function remove(bytes32 data) public;
-  function exists(bytes32 data) public view returns (bool item);
+  function add(bytes32 id) public;
+  function remove(bytes32 id) public;
+  function exists(bytes32 id) public view returns (bool item);
 }
