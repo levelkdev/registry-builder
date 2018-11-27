@@ -8,8 +8,8 @@ contract MockStakedRegistry is StakedRegistry {
     StakedRegistry.initialize(_token, _minStake);
   }
 
-  function setOwnerStake(bytes32 data, uint ownerStake) public {
-    ownerStakes[data] = ownerStake;
+  function setOwnerStake(bytes32 id, uint ownerStake) public {
+    ownerStakes[id] = ownerStake;
   }
 
 }
