@@ -8,7 +8,7 @@ import "../Challenge/IChallenge.sol";
 
 /**
  * @title TokenCuratedRegistry
- * @dev A registry with tokenized goverence of item addition and removal.
+ * @dev A registry with tokenized governance of item addition and removal.
  * Based on https://github.com/skmgoldin/tcr
  */
 contract TokenCuratedRegistry is Initializable, StakedRegistry, TimelockableItemRegistry {
