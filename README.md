@@ -6,8 +6,8 @@
 
 This library aims to be a readable and modular library for registries and TCR's. Ideally developers can use these contracts to deploy their TCR or use these contracts as an extension onto their personalized registry contract.
 
-
 ## Setup
+
 Install node modules:
 ```
 $ npm install
@@ -24,10 +24,24 @@ Run tests:
 $ npm run test
 ```
 
-### Example Project
+## Using from ZeppelinOS
 
-Example project using tcr-modular EVM package to deploy a TCR:
-https://github.com/levelkdev/tcr-modular-example
+You can create a TCR instance using [ZeppelinOS](http://zeppelinos.org/) by linking to this [EVM package](https://docs.zeppelinos.org/docs/linking.html). This will use the logic contracts already deployed to mainnet, kovan, ropsten, or rinkeby, reducing your gas deployment costs. 
+
+As an example, to create an instance of a registry using ZeppelinOS, run the following commands:
+ ```bash
+$ npm install -g zos
+$ zos init YourProject
+$ zos link tcr-modular
+$ zos push --network rinkeby
+> Connecting to dependency tcr-modular 0.1.0
+$ zos create tcr-modular/OwnedItemRegistry --network rinkeby --from $SENDER
+> Instance created at ADDRESS
+```
+
+It is strongly suggested to [use a non-default address](https://docs.zeppelinos.org/docs/pattern.html#transparent-proxies-and-function-clashes) (this is, not the first address in your node) as `$SENDER`.
+
+Check out this [**example project**](https://github.com/levelkdev/tcr-modular-example) for creating a [more interesting full TCR](https://github.com/levelkdev/tcr-modular-example/blob/master/deploy/deploy.js) instead of a basic owned item registry.
 
 ## Contract Structure
 
