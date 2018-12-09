@@ -1,4 +1,4 @@
-# TCR-Modular EVM Package
+# registry-builder
 
 #### *** DISCLAIMER: Current version contracts are not thoroughly tested or audited. Use at own risk ***
 
@@ -32,16 +32,16 @@ As an example, to create an instance of a registry using ZeppelinOS, run the fol
  ```bash
 $ npm install -g zos
 $ zos init YourProject
-$ zos link tcr-modular
+$ zos link registry-builder
 $ zos push --network rinkeby
-> Connecting to dependency tcr-modular 0.1.0
-$ zos create tcr-modular/OwnedItemRegistry --network rinkeby --from $SENDER
+> Connecting to dependency registry-builder 0.1.0
+$ zos create registry-builder/OwnedItemRegistry --network rinkeby --from $SENDER
 > Instance created at ADDRESS
 ```
 
 It is strongly suggested to [use a non-default address](https://docs.zeppelinos.org/docs/pattern.html#transparent-proxies-and-function-clashes) (this is, not the first address in your node) as `$SENDER`.
 
-Check out this [**example project**](https://github.com/levelkdev/tcr-modular-example) for creating a [more interesting full TCR](https://github.com/levelkdev/tcr-modular-example/blob/master/deploy/deploy.js) instead of a basic owned item registry.
+Check out this [**example project**](https://github.com/levelkdev/registry-builder-example) for creating a [more interesting full TCR](https://github.com/levelkdev/registry-builder-example/blob/master/deploy/deploy.js) instead of a basic owned item registry.
 
 ## Contract Structure
 

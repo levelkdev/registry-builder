@@ -1,6 +1,6 @@
 {
-  "name": "tcr-modular",
-  "description": "Open Source Library for Modular TCR's",
+  "name": "registry-builder",
+  "description": "Open source library for registry smart contracts",
   "version": "0.1.0",
   "license": "MIT",
   "files": [
