@@ -1,7 +1,8 @@
 {
   "name": "registry-builder",
-  "description": "Open source library for registry smart contracts",
+  "description": "Open source library for generic registries and token curated registries smart contracts. You can use these contracts to deploy your own TCR or use them as an extension onto your personalized registry contract.",
   "version": "0.1.0",
+  "homepage": "https://github.com/levelkdev/registry-builder",
   "license": "MIT",
   "files": [
     "build",
